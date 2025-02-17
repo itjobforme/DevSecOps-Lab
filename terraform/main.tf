@@ -9,7 +9,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1" # Change this if needed
+  region = "us-east-1"
 }
 
 ### Create a Secure VPC
@@ -22,6 +22,35 @@ resource "aws_vpc" "devsecops_vpc" {
   tags = {
     Name = "DevSecOps-VPC"
   }
+}
+
+### Enable VPC Flow Logs
+resource "aws_flow_log" "vpc_flow_logs" {
+  log_destination      = aws_s3_bucket.vpc_flow_logs.arn
+  log_destination_type = "s3"
+  traffic_type         = "ALL"
+  vpc_id              = aws_vpc.devsecops_vpc.id
+
+  tags = {
+    Name = "DevSecOps-VPC-FlowLogs"
+  }
+}
+
+### Create an S3 Bucket for Flow Logs
+resource "aws_s3_bucket" "vpc_flow_logs" {
+  bucket = "devsecops-vpc-flowlogs-${random_id.bucket_id.hex}"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags = {
+    Name = "VPC Flow Logs Bucket"
+  }
+}
+
+resource "random_id" "bucket_id" {
+  byte_length = 8
 }
 
 ### Create an Internet Gateway
@@ -37,7 +66,7 @@ resource "aws_internet_gateway" "devsecops_igw" {
 resource "aws_subnet" "public_subnet" {
   vpc_id                  = aws_vpc.devsecops_vpc.id
   cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true # Ensures instances get a public IP
+  map_public_ip_on_launch = true
 
   tags = {
     Name = "DevSecOps-Public-Subnet"
@@ -64,24 +93,24 @@ resource "aws_route_table_association" "public_assoc" {
   route_table_id = aws_route_table.public_route_table.id
 }
 
-### Create a Security Group for EC2
+### Create a Security Group for EC2 (Hardened)
 resource "aws_security_group" "devsecops_sg" {
   vpc_id = aws_vpc.devsecops_vpc.id
 
-  # Allow SSH from YOUR IP ONLY
+  # Restrict SSH to your IP
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["173.216.28.115/32"] # Replace with your actual IP
+    cidr_blocks = ["173.216.28.115/32"]  # Replace with your actual IP
   }
 
-  # Allow HTTP access from anywhere (for testing)
+  # Restrict HTTP access (Specify Allowed CIDRs)
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["173.216.28.115/32"]  # Restrict to trusted users
   }
 
   # Allow all outbound traffic
@@ -97,7 +126,7 @@ resource "aws_security_group" "devsecops_sg" {
   }
 }
 
-### Deploy an EC2 Instance in the Public Subnet
+### Deploy an EC2 Instance in the Public Subnet (Hardened)
 resource "aws_instance" "devsecops_blog" {
   ami                         = "ami-09e67e426f25ce0d7" # Ubuntu AMI
   instance_type               = "t2.micro"
@@ -106,9 +135,17 @@ resource "aws_instance" "devsecops_blog" {
   vpc_security_group_ids      = [aws_security_group.devsecops_sg.id]
   associate_public_ip_address = true
 
+  # Enforce IMDSv2 for security
+  metadata_options {
+    http_tokens = "required"
+  }
+
+  # Enable detailed monitoring
+  monitoring = true
+
   user_data = <<-EOF
     #!/bin/bash
-    set -e  # Exit on error
+    set -e
 
     # Update and install required packages
     sudo apt update -y
