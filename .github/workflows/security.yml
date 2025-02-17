@@ -47,15 +47,18 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-
-      - name: Pull OWASP ZAP Docker Image
-        run: docker pull ghcr.io/zaproxy/zaproxy:stable
-
-      - name: Start a Test Web Server
+  
+      - name: Create Docker Network
+        run: docker network create zap-network
+  
+      - name: Start a Test Web Server on Shared Network
         run: |
-          docker run -d -p 8080:80 --name test-app vulnerables/web-dvwa
-
+          docker run -d --network zap-network --name test-app -p 8080:80 vulnerables/web-dvwa
+  
+      - name: Wait for the Web Server to Start
+        run: sleep 10  # Gives the container time to fully start
+  
       - name: Run OWASP ZAP Baseline Scan
         run: |
-          docker run --rm -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://localhost:8080
-
+          docker run --rm --network zap-network ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://test-app:80
+  
