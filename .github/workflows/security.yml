@@ -26,7 +26,9 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LINTER_RULES_PATH: .github/linters/
           TERRASCAN_OPTIONS: "--skip-rules=AC_AWS_0578,AC_AWS_0481,AC_AWS_0180"
+
 
   sast:
     name: Run Semgrep SAST Scan
