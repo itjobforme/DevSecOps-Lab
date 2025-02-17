@@ -1,10 +1,21 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+  required_version = ">= 1.0.0"
+}
+
 provider "aws" {
-  region = "us-east-1"
+  region = "us-east-1" # Change this if needed
 }
 
 ### Create a Secure VPC
 resource "aws_vpc" "devsecops_vpc" {
-  cidr_block           = "10.0.0.0/16"
+  cidr_block = "10.0.0.0/16"
+
   enable_dns_support   = true
   enable_dns_hostnames = true
 
@@ -62,7 +73,7 @@ resource "aws_security_group" "devsecops_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["173.216.28.115/32"]
+    cidr_blocks = ["173.216.28.115/32"] # Replace with your actual IP
   }
 
   # Allow HTTP access from anywhere (for testing)
@@ -88,11 +99,11 @@ resource "aws_security_group" "devsecops_sg" {
 
 ### Deploy an EC2 Instance in the Public Subnet
 resource "aws_instance" "devsecops_blog" {
-  ami                    = "ami-09e67e426f25ce0d7" # Ubuntu AMI
-  instance_type          = "t2.micro"
-  key_name               = "devsecops-key-new"
-  subnet_id              = aws_subnet.public_subnet.id
-  vpc_security_group_ids = [aws_security_group.devsecops_sg.id]
+  ami                         = "ami-09e67e426f25ce0d7" # Ubuntu AMI
+  instance_type               = "t2.micro"
+  key_name                    = "devsecops-key-new"
+  subnet_id                   = aws_subnet.public_subnet.id
+  vpc_security_group_ids      = [aws_security_group.devsecops_sg.id]
   associate_public_ip_address = true
 
   user_data = <<-EOF
