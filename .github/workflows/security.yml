@@ -29,8 +29,7 @@ jobs:
           DISABLE_ERRORS: TERRASCAN
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VALIDATE_TERRAFORM: true
-          VALIDATE_TERRASCAN: false
+
 
 
   sast:
