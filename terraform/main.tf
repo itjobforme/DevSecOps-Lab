@@ -19,7 +19,7 @@ provider "aws" {
   region = "us-east-1"
 }
 
-### Create a Secure VPC
+### Create a Secure VPC 
 resource "aws_vpc" "devsecops_vpc" {
   cidr_block = "10.0.0.0/16"
 
