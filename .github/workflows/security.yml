@@ -12,6 +12,10 @@ jobs:
   lint:
     name: Run Super-Linter
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      id-token: write
+      contents: read
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
