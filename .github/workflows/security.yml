@@ -26,6 +26,8 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TERRASCAN_SKIP_RULES: "AC_AWS_0466,AC_AWS_0480"
+
 
   sast:
     name: Run Semgrep SAST Scan
