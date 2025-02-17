@@ -91,7 +91,7 @@ resource "aws_security_group" "devsecops_sg" {
 resource "aws_instance" "devsecops_blog" {
   ami             = "ami-09e67e426f25ce0d7"  # Amazon Linux 2
   instance_type   = "t2.micro"
-  key_name        = "devsecops-key"  # Use the key pair you created
+  key_name        = "devsecops-key-new"
 
   subnet_id       = aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.devsecops_sg.id]
