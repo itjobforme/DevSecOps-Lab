@@ -89,7 +89,7 @@ resource "aws_security_group" "devsecops_sg" {
 
 ### Deploy an EC2 Instance in the Public Subnet
 resource "aws_instance" "devsecops_blog" {
-  ami             = "ami-09e67e426f25ce0d7"  # Amazon Linux 2
+  ami             = "ami-09e67e426f25ce0d7"  # Ubuntu AMI
   instance_type   = "t2.micro"
   key_name        = "devsecops-key-new"
 
@@ -100,15 +100,24 @@ resource "aws_instance" "devsecops_blog" {
 
   user_data = <<-EOF
     #!/bin/bash
-    dnf update -y
-    dnf install -y docker python3 pip
-    systemctl enable docker
-    systemctl start docker
-    usermod -aG docker ec2-user
-    docker run -d -p 80:5000 --name devsecops-blog itjobforme/devsecops-blog:latest
+    set -e  # Exit on error
+
+    # Update and install required packages
+    sudo apt update -y
+    sudo apt upgrade -y
+    sudo apt install -y docker.io python3 python3-pip
+
+    # Enable and start Docker
+    sudo systemctl enable docker
+    sudo systemctl start docker
+    sudo usermod -aG docker ubuntu
+
+    # Pull and run the Dockerized web app
+    sudo docker run -d -p 80:5000 --name devsecops-blog itjobforme/devsecops-blog:latest
   EOF
 
   tags = {
     Name = "DevSecOps-Blog"
   }
 }
+
