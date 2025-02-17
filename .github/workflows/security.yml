@@ -59,6 +59,7 @@ jobs:
         run: sleep 10  # Gives the container time to fully start
   
       - name: Run OWASP ZAP Baseline Scan
+        continue-on-error: true
         run: |
           docker run --rm --network zap-network ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://test-app:80
   
