@@ -66,9 +66,9 @@
 
 ---
 
-## 🚀 Tracking Progress
+## 🚀 Tracking My Progress
 - **Document everything** (commit findings to GitHub)
-- **Write LinkedIn posts** about what you’re building
-- **Engage in security communities** (OWASP, DevSecOps Discords)
+- **Write LinkedIn posts** about what I'm building
+- **Engage in security communities** (OWASP, Reddit, DevSecOps Discords)
 
 
