@@ -56,4 +56,4 @@ jobs:
         uses: zaproxy/action-baseline@v0.9.0
         with:
           target: "http://localhost:8080"
-          docker_name: "owasp/zap2docker-stable"
+          use_latest_official_zap: true
