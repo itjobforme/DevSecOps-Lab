@@ -40,7 +40,7 @@ resource "aws_internet_gateway" "devsecops_igw" {
   }
 }
 
-### Create a Public Subnet
+### Create a Public Subnet 
 resource "aws_subnet" "public_subnet" {
   vpc_id                  = aws_vpc.devsecops_vpc.id
   cidr_block              = "10.0.1.0/24"
