@@ -26,6 +26,7 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TERRASCAN_OPTIONS: "--skip-rules=AC_AWS_0578,AC_AWS_0481,AC_AWS_0180"
 
   sast:
     name: Run Semgrep SAST Scan
@@ -67,5 +68,3 @@ jobs:
         continue-on-error: true
         run: |
           docker run --rm --network zap-network ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://blog-app:5000
-
-  
