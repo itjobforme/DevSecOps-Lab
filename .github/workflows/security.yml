@@ -51,15 +51,17 @@ jobs:
       - name: Create Docker Network
         run: docker network create zap-network
   
-      - name: Start a Test Web Server on Shared Network
+      - name: Start My DevSecOps Web App
         run: |
-          docker run -d --network zap-network --name test-app -p 8080:80 vulnerables/web-dvwa
+          docker build -t my-devsecops-blog ./blog-app
+          docker run -d --network zap-network --name blog-app -p 5000:5000 my-devsecops-blog
   
-      - name: Wait for the Web Server to Start
-        run: sleep 10  # Gives the container time to fully start
+      - name: Wait for Web App to Start
+        run: sleep 10  # Ensures app is ready
   
       - name: Run OWASP ZAP Baseline Scan
         continue-on-error: true
         run: |
-          docker run --rm --network zap-network ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://test-app:80
+          docker run --rm --network zap-network ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://blog-app:5000
+
   
