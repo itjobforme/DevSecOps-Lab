@@ -19,7 +19,7 @@ provider "aws" {
   region = "us-east-1"
 }
 
-### Create a Secure VPC 
+### Create a Secure VPC
 resource "aws_vpc" "devsecops_vpc" {
   cidr_block = "10.0.0.0/16"
 
@@ -132,10 +132,10 @@ resource "aws_instance" "devsecops_blog" {
     sudo systemctl start docker
     sudo usermod -aG docker ubuntu
 
-    # Pull and run the updated Dockerized web app
+    # Pull and run the correct Dockerized web app
     sudo docker pull itjobforme/devsecops-lab:latest
     sudo docker run -d -p 80:5000 --name devsecops-blog itjobforme/devsecops-lab:latest
-  EOF
+EOF
 
 
   tags = {
