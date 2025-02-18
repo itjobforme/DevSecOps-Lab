@@ -20,6 +20,7 @@ def home():
                 <li>Deploy updates automatically on EC2 using AWS SSM.</li>
             </ul>
         </li>
+        <li>✅ <b>Zero Hardcoded Credentials:</b> Using IAM roles and OIDC-based Tokens stored in GiHub Secrets for authentication.</li>
         <li>✅ <b>Automated Security Scans:</b> Integrated OWASP ZAP for DAST and Semgrep for SAST.</li>
         <li>✅ <b>Dynamic Deployment:</b> Any code changes in <code>blog-app/</code> trigger an automatic deployment.</li>
     </ul>
@@ -30,7 +31,7 @@ def home():
     <p>🔜 Expand the blog with more hands-on DevSecOps lessons.</p>
 
     <hr>
-    <p><i>Built with Flask, Terraform, and GitHub Actions. Scanned automatically for security vulnerabilities.</i></p>
+    <p><i>Built with Flask, Terraform, and GitHub Actions. Secured with IAM roles and OIDC-based authentication, eliminating hardcoded AWS credentials.</i></p>
     """
 
 if __name__ == "__main__":
