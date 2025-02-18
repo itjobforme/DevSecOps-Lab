@@ -23,19 +23,17 @@ sudo usermod -aG docker ubuntu
 # Wait to ensure Docker is up
 sleep 10
 
-# Install AWS SSM Agent (if not already installed)
-if systemctl list-units --full --all | grep -Fq "amazon-ssm-agent.service"; then
-    echo "SSM Agent already installed."
+# Check if the SSM Agent is already installed via Snap
+if snap list | grep -q amazon-ssm-agent; then
+    echo "SSM Agent is already installed via Snap."
 else
     echo "Installing AWS SSM Agent..."
-    if ! command -v snap &> /dev/null; then
-        sudo apt install -y amazon-ssm-agent
-    else
-        sudo snap install amazon-ssm-agent --classic
-    fi
-    sudo systemctl enable amazon-ssm-agent
-    sudo systemctl start amazon-ssm-agent
+    sudo snap install amazon-ssm-agent --classic
 fi
+
+# Ensure SSM Agent is started
+echo "Starting AWS SSM Agent..."
+sudo systemctl restart snap.amazon-ssm-agent.amazon-ssm-agent.service || true
 
 # Wait to ensure SSM is up
 sleep 10
@@ -45,6 +43,6 @@ echo "Pulling latest Docker image..."
 sudo docker pull itjobforme/devsecops-lab:latest
 
 echo "Running Docker container..."
-sudo docker run -d -p 80:5000 --restart unless-stopped --name devsecops-blog itjobforme/devsecops-lab:latest
+sudo docker run -d -p 80:80 --restart unless-stopped --name devsecops-blog itjobforme/devsecops-lab:latest
 
 echo "=== User Data Script Completed Successfully ==="
