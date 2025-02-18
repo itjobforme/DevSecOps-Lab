@@ -253,35 +253,45 @@ resource "aws_instance" "devsecops_blog" {
 
   user_data = <<-EOF
     #!/bin/bash
-    set -e  # Exit on error
+set -e  # Exit on error
 
-    # Update and install required packages
-    sudo apt update -y
-    sudo apt upgrade -y
-    sudo apt install -y docker.io python3 python3-pip
+# Log everything to a file for debugging
+exec > /var/log/user-data.log 2>&1
 
-    # Enable and start Docker
-    sudo systemctl enable docker
-    sudo systemctl start docker
-    sudo usermod -aG docker ubuntu
+echo "Updating and installing required packages..."
+sudo apt update -y
+sudo apt upgrade -y
+sudo apt install -y docker.io python3 python3-pip
 
-    sleep 10
+echo "Enabling and starting Docker..."
+sudo systemctl enable docker
+sudo systemctl start docker
+sudo usermod -aG docker ubuntu
 
-    # Install AWS SSM Agent (if not using pre-installed Snap package)
+sleep 10  # Give Docker time to start
+
+echo "Checking if SSM Agent is installed..."
+if systemctl list-units --full --all | grep -Fq "amazon-ssm-agent.service"; then
+    echo "SSM Agent already installed. Skipping installation."
+else
+    echo "Installing AWS SSM Agent..."
     if ! command -v snap &> /dev/null; then
-      sudo apt install -y amazon-ssm-agent
+        sudo apt install -y amazon-ssm-agent
     else
-      sudo snap install amazon-ssm-agent --classic
+        sudo snap install amazon-ssm-agent --classic
     fi
-
     sudo systemctl enable amazon-ssm-agent
     sudo systemctl start amazon-ssm-agent
+fi
 
-    sleep 20
+sleep 10  # Allow SSM to fully start
 
-    # Pull and run the updated Dockerized web app
-    sudo docker pull itjobforme/devsecops-lab:latest
-    sudo docker run -d -p 80:80 --name devsecops-blog itjobforme/devsecops-lab:latest
+echo "Pulling and running the Docker container..."
+sudo docker pull itjobforme/devsecops-lab:latest
+sudo docker run -d -p 80:80 --restart unless-stopped --name devsecops-blog itjobforme/devsecops-lab:latest
+
+echo "User Data script completed successfully."
+
   EOF
 
   tags = {
