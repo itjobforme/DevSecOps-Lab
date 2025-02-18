@@ -251,50 +251,14 @@ resource "aws_instance" "devsecops_blog" {
     http_endpoint = "enabled"
   }
 
-  user_data = <<-EOF
-    #!/bin/bash
-set -e  # Exit on error
+  # Ensure dependencies are created first
+  depends_on = [aws_iam_instance_profile.ec2_ssm_profile]
 
-# Log everything to a file for debugging
-exec > /var/log/user-data.log 2>&1
-
-echo "Updating and installing required packages..."
-sudo apt update -y
-sudo apt upgrade -y
-sudo apt install -y docker.io python3 python3-pip
-
-echo "Enabling and starting Docker..."
-sudo systemctl enable docker
-sudo systemctl start docker
-sudo usermod -aG docker ubuntu
-
-sleep 10  # Give Docker time to start
-
-echo "Checking if SSM Agent is installed..."
-if systemctl list-units --full --all | grep -Fq "amazon-ssm-agent.service"; then
-    echo "SSM Agent already installed. Skipping installation."
-else
-    echo "Installing AWS SSM Agent..."
-    if ! command -v snap &> /dev/null; then
-        sudo apt install -y amazon-ssm-agent
-    else
-        sudo snap install amazon-ssm-agent --classic
-    fi
-    sudo systemctl enable amazon-ssm-agent
-    sudo systemctl start amazon-ssm-agent
-fi
-
-sleep 10  # Allow SSM to fully start
-
-echo "Pulling and running the Docker container..."
-sudo docker pull itjobforme/devsecops-lab:latest
-sudo docker run -d -p 80:80 --restart unless-stopped --name devsecops-blog itjobforme/devsecops-lab:latest
-
-echo "User Data script completed successfully."
-
-  EOF
+  # Use base64-encoded user data for better compatibility
+  user_data_base64 = filebase64("user-data.sh")
 
   tags = {
     Name = "DevSecOps-Blog"
   }
 }
+
