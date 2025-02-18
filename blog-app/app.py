@@ -24,7 +24,7 @@ def home():
     </ul>
 
     <h2>📅 Next Steps</h2>
-    <p>🔜 Implement HTTPS via AWS ACM & Route 53 for automatic domain resolution.</p>
+    <p>🔜 Implement HTTPS via AWS ACM & Route 53 for automatic domain resolution</p>
     <p>🔜 Set up monitoring and alerting for security events.</p>
     <p>🔜 Expand the blog with more hands-on DevSecOps lessons.</p>
 
