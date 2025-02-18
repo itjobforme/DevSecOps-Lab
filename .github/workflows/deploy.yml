@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'blog-app/**'  # Only trigger deployment when files in blog-app/ change
+      - 'blog-app/**'
 
 permissions:
   id-token: write
