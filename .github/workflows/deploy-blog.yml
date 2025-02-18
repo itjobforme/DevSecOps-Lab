@@ -12,20 +12,20 @@ jobs:
     name: Deploy to EC2
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-      - name: Debug Environment Variables
-        run: |
-          echo "AWS_ROLE_TO_ASSUME=${{ secrets.AWS_ROLE_TO_ASSUME }}"
-          echo "AWS_REGION=${{ secrets.AWS_REGION }}"  
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION }}
-
+          audience: sts.amazonaws.com
 
       - name: Build Docker Image
         run: |
