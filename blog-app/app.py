@@ -8,7 +8,7 @@ def home():
     <h1> DevSecOps Lab: Continuous Security Automation</h1>
     <p>Welcome to my DevSecOps journey! This web app is automatically built, scanned, and deployed using a fully automated pipeline.</p>
 
-    <h2> What We've Achieved So Far</h2>
+    <h2> What Has Been Achieved So Far</h2>
     <ul>
         <li>✅ <b>Infrastructure as Code:</b> Used Terraform to provision EC2, S3, and networking components.</li>
         <li>✅ <b>Secure Configuration:</b> Enforced IAM policies, enabled IMDSv2, and removed SSH access by using AWS Systems Manager (SSM) for secure administration.</li>
