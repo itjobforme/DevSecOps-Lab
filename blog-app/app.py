@@ -31,7 +31,7 @@ def home():
     <p>🔜 Expand the blog with more hands-on DevSecOps lessons.</p>
 
     <hr>
-    <p><i>Built with Flask, Terraform, and GitHub Actions. Secured with IAM roles and OIDC-based authentication, eliminating hardcoded AWS credentials.</i></p>
+    <p><i>Built with Flask, Terraform, and GitHub Actions. Secured with IAM roles and OIDC-based authentication.</i></p>
     """
 
 if __name__ == "__main__":
