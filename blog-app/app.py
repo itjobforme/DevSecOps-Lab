@@ -13,10 +13,10 @@ def home():
         <li>✅ <b>Secure Configuration:</b> Enforced IAM policies, enabled IMDSv2, and restricted SSH access.</li>
         <li>✅ <b>CI/CD Pipeline:</b> Configured GitHub Actions to:
             <ul>
-                <li>Lint Terraform and Python code</li>
-                <li>Run security scans (Semgrep, OWASP ZAP)</li>
-                <li>Build and push Docker images to Docker Hub</li>
-                <li>Deploy updates automatically on EC2</li>
+                <li>Lint Terraform and Python code.</li>
+                <li>Run security scans (Semgrep, OWASP ZAP).</li>
+                <li>Build and push Docker images to Docker Hub.</li>
+                <li>Deploy updates automatically on EC2.</li>
             </ul>
         </li>
         <li>✅ <b>Automated Security Scans:</b> Integrated OWASP ZAP for DAST and Semgrep for SAST.</li>
