@@ -7,14 +7,25 @@ on:
     paths:
       - 'blog-app/**'  # Only trigger deployment when files in blog-app/ change
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
-    name: Deploy to EC2
+    name: Deploy to EC2 via OIDC & SSM
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: GitHubActionsDeploy
+          aws-region: us-east-1  # Change to your region
 
       - name: Build Docker Image
         run: |
@@ -26,17 +37,20 @@ jobs:
       - name: Push Image to Docker Hub
         run: docker push itjobforme/devsecops-lab:latest
 
-      - name: SSH into EC2 and Deploy
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
-            sudo docker pull itjobforme/devsecops-lab:latest
-            if sudo docker ps -a --format '{{.Names}}' | grep -q devsecops-blog; then
-              sudo docker restart devsecops-blog
-            else
-              sudo docker run -d -p 80:5000 --name devsecops-blog itjobforme/devsecops-lab:latest
-            fi
+      - name: Get EC2 Instance ID
+        id: get_instance
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=DevSecOps-Blog" "Name=instance-state-name,Values=running" --query "Reservations[0].Instances[0].InstanceId" --output text)
+          echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
+
+      - name: Deploy via SSM
+        run: |
+          aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --targets "Key=instance-id,Values=${INSTANCE_ID}" \
+            --parameters "commands=[
+              'sudo docker login -u \"${{ secrets.DOCKER_USERNAME }}\" -p \"${{ secrets.DOCKER_PASSWORD }}\"',
+              'sudo docker pull itjobforme/devsecops-lab:latest',
+              'if sudo docker ps -a --format \"{{.Names}}\" | grep -q devsecops-blog; then sudo docker restart devsecops-blog; else sudo docker run -d -p 80:5000 --name devsecops-blog itjobforme/devsecops-lab:latest; fi'
+            ]" \
+            --region us-east-1
