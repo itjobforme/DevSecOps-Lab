@@ -10,7 +10,7 @@ def home():
 
     <h2> What Has Been Achieved So Far</h2>
     <ul>
-        <li>✅ <b>Infrastructure as Code:</b> Used Terraform to provision EC2, S3, and networking components.</li>
+        <li>✅ <b>Infrastructure as Code:</b> Used Terraform to provision EC2, S3, networking components, and CloudFront for HTTPS.</li>
         <li>✅ <b>Secure Configuration:</b> Enforced IAM policies, enabled IMDSv2, and removed SSH access by using AWS Systems Manager (SSM) for secure administration.</li>
         <li>✅ <b>CI/CD Pipeline:</b> Configured GitHub Actions to:
             <ul>
@@ -20,9 +20,10 @@ def home():
                 <li>Deploy updates automatically on EC2 using AWS SSM</li>
             </ul>
         </li>
-        <li>✅ <b>Zero Hardcoded Credentials:</b> Using IAM roles and OIDC-based Tokens stored in GiHub Secrets for authentication.</li>
+        <li>✅ <b>Zero Hardcoded Credentials:</b> Using IAM roles and OIDC-based Tokens stored in GitHub Secrets for authentication.</li>
         <li>✅ <b>Automated Security Scans:</b> Integrated OWASP ZAP for DAST and Semgrep for SAST.</li>
         <li>✅ <b>Dynamic Deployment:</b> Any code changes in <code>blog-app/</code> trigger an automatic deployment.</li>
+        <li>✅ <b>Fully Dynamic Infrastructure:</b> DNS and tagging ensure resources remain flexible and automatically update without breaking dependencies.</li>
     </ul>
 
     <h2>📅 Next Steps</h2>
@@ -31,7 +32,7 @@ def home():
     <p>🔜 Expand the blog with more hands-on DevSecOps lessons.</p>
 
     <hr>
-    <p><i>Built with Flask, Terraform, and GitHub Actions. Secured with IAM roles and OIDC-based authentication.</i></p>
+    <p><i>Built with Flask, Terraform, and GitHub Actions. Secured with IAM roles, OIDC authentication, and automated infrastructure updates.</i></p>
     """
 
 if __name__ == "__main__":
