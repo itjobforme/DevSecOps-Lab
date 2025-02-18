@@ -265,6 +265,8 @@ resource "aws_instance" "devsecops_blog" {
     sudo systemctl start docker
     sudo usermod -aG docker ubuntu
 
+    sleep 10
+
     # Install AWS SSM Agent (if not using pre-installed Snap package)
     if ! command -v snap &> /dev/null; then
       sudo apt install -y amazon-ssm-agent
@@ -275,9 +277,11 @@ resource "aws_instance" "devsecops_blog" {
     sudo systemctl enable amazon-ssm-agent
     sudo systemctl start amazon-ssm-agent
 
+    sleep 10
+
     # Pull and run the updated Dockerized web app
     sudo docker pull itjobforme/devsecops-lab:latest
-    sudo docker run -d -p 80:5000 --name devsecops-blog itjobforme/devsecops-lab:latest
+    sudo docker run -d -p 80:80 --name devsecops-blog itjobforme/devsecops-lab:latest
   EOF
 
   tags = {
