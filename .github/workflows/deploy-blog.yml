@@ -16,6 +16,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: GitHubActionDeploy
+          aws-region: us-east-1
+
       - name: Build Docker Image
         run: |
           docker build -t itjobforme/devsecops-lab:latest ./blog-app
@@ -39,4 +46,3 @@ jobs:
               "sudo docker run -d -p 80:5000 --name devsecops-blog itjobforme/devsecops-lab:latest"
             ]' \
             --region us-east-1
-
