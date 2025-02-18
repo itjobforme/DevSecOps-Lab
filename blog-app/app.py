@@ -1,6 +1,10 @@
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix  # Import ProxyFix
 
 app = Flask(__name__)
+
+# Apply ProxyFix middleware to handle CloudFront headers correctly
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 
 @app.route("/")
 def home():
