@@ -53,52 +53,22 @@ resource "aws_acm_certificate_validation" "blog_cert_validation" {
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
 
-resource "aws_cloudfront_distribution" "blog_distribution" {
-  origin {
-    domain_name = aws_instance.devsecops_blog.public_dns
-    origin_id   = aws_instance.devsecops_blog.id
+resource "aws_lb" "devsecops_alb" {
+  name               = "devsecops-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb_sg.id]
+  subnets            = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id]
 
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "http-only"
-      origin_ssl_protocols   = ["TLSv1.2"]
-    }
-  }
 
-  enabled             = true
-  default_root_object = "index.html"
+  enable_deletion_protection = false
 
-  default_cache_behavior {
-    target_origin_id       = aws_instance.devsecops_blog.id
-    viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = ["GET", "HEAD"]
-    cached_methods         = ["GET", "HEAD"]
-    forwarded_values {
-      query_string = true
-      cookies {
-        forward = "all"
-      }
-    }
-  }
+  depends_on = [aws_acm_certificate_validation.blog_cert_validation] # Ensure the cert is validated before ALB deploys
 
-  viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate.blog_cert.arn
-    ssl_support_method       = "sni-only"
-    minimum_protocol_version = "TLSv1.2_2021"
-  }
-
-  restrictions {
-    geo_restriction {
-      restriction_type = "none"
-    }
-  }
 
   tags = {
-    Name = "DevSecOpsBlogCloudFront"
+    Name = "DevSecOps-ALB"
   }
-
-  depends_on = [aws_acm_certificate_validation.blog_cert_validation] # Ensure the certificate is validated before CloudFront deploys
 }
 
 
@@ -108,11 +78,12 @@ resource "aws_route53_record" "blog_dns" {
   type    = "A"
 
   alias {
-    name                   = aws_cloudfront_distribution.blog_distribution.domain_name
-    zone_id                = aws_cloudfront_distribution.blog_distribution.hosted_zone_id
+    name                   = aws_lb.devsecops_alb.dns_name
+    zone_id                = aws_lb.devsecops_alb.zone_id
     evaluate_target_health = false
   }
 }
+
 
 
 ### Create an IAM Role for EC2 with SSM Access
@@ -164,16 +135,30 @@ resource "aws_internet_gateway" "devsecops_igw" {
   }
 }
 
-### Create a Public Subnet
-resource "aws_subnet" "public_subnet" {
+### Create Public Subnet 1
+resource "aws_subnet" "public_subnet_1" {
   vpc_id                  = aws_vpc.devsecops_vpc.id
   cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "DevSecOps-Public-Subnet"
+    Name = "DevSecOps-Public-Subnet-1"
   }
 }
+
+### Create Public Subnet 2
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id                  = aws_vpc.devsecops_vpc.id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "DevSecOps-Public-Subnet-2"
+  }
+}
+
 
 ### Create a Route Table for Public Subnet
 resource "aws_route_table" "public_route_table" {
@@ -189,38 +174,126 @@ resource "aws_route_table" "public_route_table" {
   }
 }
 
-### Associate Route Table with Public Subnet
-resource "aws_route_table_association" "public_assoc" {
-  subnet_id      = aws_subnet.public_subnet.id
+### Associate Route Table with Public Subnet 1
+resource "aws_route_table_association" "public_assoc_1" {
+  subnet_id      = aws_subnet.public_subnet_1.id
   route_table_id = aws_route_table.public_route_table.id
 }
+
+### Associate Route Table with Public Subnet 2
+resource "aws_route_table_association" "public_assoc_2" {
+  subnet_id      = aws_subnet.public_subnet_2.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
+
+resource "aws_lb_target_group" "devsecops_tg" {
+  name     = "devsecops-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.devsecops_vpc.id
+
+  health_check {
+    path                = "/"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+
+  tags = {
+    Name = "DevSecOps-TG"
+  }
+}
+
+resource "aws_lb_listener" "http_redirect" {
+  load_balancer_arn = aws_lb.devsecops_alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      protocol    = "HTTPS"
+      port        = "443"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "https_listener" {
+  load_balancer_arn = aws_lb.devsecops_alb.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate.blog_cert.arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.devsecops_tg.arn
+  }
+}
+
+
+
+
+resource "aws_lb_target_group_attachment" "devsecops_tg_attachment" {
+  target_group_arn = aws_lb_target_group.devsecops_tg.arn
+  target_id        = aws_instance.devsecops_blog.id
+  port             = 80
+}
+
+
+### Security Group for ALB
+resource "aws_security_group" "alb_sg" {
+  name        = "alb-security-group"
+  description = "Security group for ALB"
+  vpc_id      = aws_vpc.devsecops_vpc.id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "ALB-SG"
+  }
+}
+
 
 ### Create a Security Group for EC2
 resource "aws_security_group" "devsecops_sg" {
   vpc_id = aws_vpc.devsecops_vpc.id
 
-  # Allow SSH only from your IP
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["173.216.28.115/32"]
-  }
-
-  # Allow traffic from CloudFront using AWS-managed Prefix List
+  # Allow traffic from ALB only
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    prefix_list_ids = ["pl-3b927c52"]
+    security_groups = [aws_security_group.alb_sg.id] # Allow only from ALB
   }
-  
-  # Allow SSM Agent Traffic (Keep this open for AWS Systems Manager access)
+
+  # Allow SSM Agent Traffic
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Required for SSM
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   # Allow all outbound traffic
@@ -236,12 +309,14 @@ resource "aws_security_group" "devsecops_sg" {
   }
 }
 
+
 ### Deploy an EC2 Instance in the Public Subnet
 resource "aws_instance" "devsecops_blog" {
   ami                         = "ami-09e67e426f25ce0d7" # Ubuntu AMI
   instance_type               = "t2.micro"
   key_name                    = "devsecops-key-new"
-  subnet_id                   = aws_subnet.public_subnet.id
+  subnet_id                   = aws_subnet.public_subnet_1.id
+
   vpc_security_group_ids      = [aws_security_group.devsecops_sg.id]
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.ec2_ssm_profile.name
