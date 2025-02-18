@@ -132,9 +132,11 @@ resource "aws_instance" "devsecops_blog" {
     sudo systemctl start docker
     sudo usermod -aG docker ubuntu
 
-    # Pull and run the Dockerized web app
-    sudo docker run -d -p 80:5000 --name devsecops-blog itjobforme/devsecops-blog:latest
+    # Pull and run the updated Dockerized web app
+    sudo docker pull itjobforme/devsecops-lab:latest
+    sudo docker run -d -p 80:5000 --name devsecops-blog itjobforme/devsecops-lab:latest
   EOF
+
 
   tags = {
     Name = "DevSecOps-Blog"
