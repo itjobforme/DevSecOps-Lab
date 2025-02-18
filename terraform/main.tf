@@ -31,7 +31,7 @@ resource "aws_vpc" "devsecops_vpc" {
   }
 }
 
-### Create an Internet Gateway
+### Create an Internet Gateway 
 resource "aws_internet_gateway" "devsecops_igw" {
   vpc_id = aws_vpc.devsecops_vpc.id
 
