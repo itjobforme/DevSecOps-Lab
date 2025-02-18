@@ -47,6 +47,6 @@ jobs:
               "sudo docker pull itjobforme/devsecops-lab:latest",
               "sudo docker stop devsecops-blog || true",
               "sudo docker rm devsecops-blog || true",
-              "sudo docker run -d -p 80:5000 --name devsecops-blog itjobforme/devsecops-lab:latest"
+              "sudo docker run -d -p 80:80 --name devsecops-blog itjobforme/devsecops-lab:latest"
             ]' \
             --region us-east-1
