@@ -14,10 +14,10 @@ def home():
         <li>✅ <b>Secure Configuration:</b> Enforced IAM policies, enabled IMDSv2, and removed SSH access by using AWS Systems Manager (SSM) for secure administration.</li>
         <li>✅ <b>CI/CD Pipeline:</b> Configured GitHub Actions to:
             <ul>
-                <li>Lint Terraform and Python code.</li>
-                <li>Run security scans (Semgrep, OWASP ZAP).</li>
-                <li>Build and push Docker images to Docker Hub.</li>
-                <li>Deploy updates automatically on EC2 using AWS SSM.</li>
+                <li>Lint Terraform and Python code</li>
+                <li>Run security scans (Semgrep, OWASP ZAP)</li>
+                <li>Build and push Docker images to Docker Hub</li>
+                <li>Deploy updates automatically on EC2 using AWS SSM</li>
             </ul>
         </li>
         <li>✅ <b>Zero Hardcoded Credentials:</b> Using IAM roles and OIDC-based Tokens stored in GiHub Secrets for authentication.</li>
