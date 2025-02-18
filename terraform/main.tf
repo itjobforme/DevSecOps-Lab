@@ -277,7 +277,7 @@ resource "aws_instance" "devsecops_blog" {
     sudo systemctl enable amazon-ssm-agent
     sudo systemctl start amazon-ssm-agent
 
-    sleep 10
+    sleep 20
 
     # Pull and run the updated Dockerized web app
     sudo docker pull itjobforme/devsecops-lab:latest
