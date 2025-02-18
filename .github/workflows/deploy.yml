@@ -1,0 +1,46 @@
+name: Deploy DevSecOps Blog
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'blog-app/**'  # Only trigger deployment when files in blog-app/ change
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS IAM Role
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+          role-session-name: GitHubActions
+          aws-region: us-east-1
+
+      - name: Build Docker Image
+        run: |
+          docker build -t itjobforme/devsecops-lab:latest ./blog-app
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Push Image to Docker Hub
+        run: docker push itjobforme/devsecops-lab:latest
+
+      - name: SSH into EC2 and Deploy
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo docker pull itjobforme/devsecops-lab:latest
+            sudo docker stop devsecops-blog || true
+            sudo docker rm devsecops-blog || true
+            sudo docker run -d -p 80:5000 --name devsecops-blog itjobforme/devsecops-lab:latest
