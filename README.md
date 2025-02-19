@@ -1,9 +1,9 @@
 # DevSecOps Training - Hands-On Lab  
-🔗 **Live Blog**: (https://blog.securingthecloud.org)  
+🔗 **Live Blog**: https://blog.securingthecloud.org  
 
 This hands-on lab is designed to build practical **DevSecOps** skills by implementing **CI/CD security automation, infrastructure as code, container security, and cloud security monitoring**.  
 
-As part of this project, we have built and deployed a **real-world application**— the live blog at [Securing The Cloud](https://blog.securingthecloud.org). The blog itself is running on **software implemented in this lab**, showcasing DevSecOps best practices in action.  
+As part of this project, we have built and deployed a **real-world application**—the live blog at [Securing The Cloud](https://blog.securingthecloud.org). The blog itself is running on **software implemented in this lab**, showcasing DevSecOps best practices in action.  
 
 ---
 
@@ -13,7 +13,7 @@ As part of this project, we have built and deployed a **real-world application**
 - Automate security scans in pipelines  
 - Enforce **branch protections & code reviews**  
 
-### 🔨 Tasks:
+### Tasks:
 1. **Create a GitHub repository** to build a DevSecOps pipeline  
 2. **Set up GitHub Actions**:
    - Add a **CI pipeline** using `super-linter`  
@@ -76,5 +76,5 @@ As part of this project, we have built and deployed a **real-world application**
 
 ## Tracking My Progress  
 ✅ **Document everything** (committing findings to GitHub)  
- **Write about my journey** on (https://blog.securingthecloud.org)  
- **Engage with security communities** (OWASP, DevSecOps Discords, Reddit)  
+**Write about my journey** on [Securing The Cloud](https://blog.securingthecloud.org)
+**Engage with security communities** (OWASP, DevSecOps Discords, Reddit)  
