@@ -26,12 +26,14 @@ def home():
         </li>
         <li>✅ <b>Zero Hardcoded Credentials:</b> Using IAM roles and OIDC-based Tokens stored in GitHub Secrets for authentication.</li>
         <li>✅ <b>Automated Security Scans:</b> Integrated OWASP ZAP for DAST and Semgrep for SAST.</li>
-        <li>✅ <b>Dynamic Deployment:</b> Any code changes in <code>blog-app/</code> trigger an automatic deployment.</li>
+        <li>✅ <b>Dynamic Deployment:</b> Any code changes in <code>blog-app/</code> trigger an automatic deployment by updating and pushing a new Docker image.</li>
+        <li>✅ <b>Infrastructure Updates:</b> Any changes in <code>Terraform/</code> automatically deploy infrastructure updates to AWS.</li>
         <li>✅ <b>Fully Dynamic Infrastructure:</b> DNS and tagging ensure resources remain flexible and automatically update without breaking dependencies.</li>
     </ul>
 
     <h2>📅 Next Steps</h2>
     <p>✅ Implement HTTPS via AWS ACM & Route 53 for automatic domain resolution. (complete!)</p>
+    <p>🔜 Integrate blog app with Flask + SQLite with an admin panel to manage blog posts.</p>
     <p>🔜 Set up monitoring and alerting for security events.</p>
     <p>🔜 Expand the blog with more hands-on DevSecOps lessons.</p>
 
