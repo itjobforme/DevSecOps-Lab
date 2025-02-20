@@ -1,9 +1,6 @@
 name: Security Scans
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
@@ -12,7 +9,6 @@ jobs:
   lint:
     name: Run Super-Linter
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     permissions:
       security-events: write
       id-token: write
@@ -21,13 +17,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Install Terraform
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.3.0  # Match your required Terraform version
+          terraform_version: 1.3.0  
 
-      # Run Terraform FMT to auto-format files before linting
       - name: Run Terraform Format
         run: terraform fmt -recursive
 
@@ -42,11 +36,9 @@ jobs:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
   sast:
     name: Run Semgrep SAST Scan
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -55,7 +47,7 @@ jobs:
         run: pip install semgrep
 
       - name: Run Semgrep Auto Scan
-        run: semgrep --config=auto
+        run: semgrep --config=auto blog-app/
 
       - name: Run Custom Security Rules
         run: |
@@ -63,25 +55,27 @@ jobs:
           semgrep --config=.github/semgrep-rules/terraform-security.yml
 
   dast:
-    name: Run OWASP ZAP Scan
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      name: Run OWASP ZAP Scan (Optional)
+      runs-on: ubuntu-latest
+      continue-on-error: true  # Prevent scan failures from blocking PRs
+      steps:
+        - name: Checkout Code
+          uses: actions/checkout@v3
   
-      - name: Create Docker Network
-        run: docker network create zap-network
+        - name: Create Docker Network
+          run: docker network create zap-network
   
-      - name: Start My DevSecOps Web App
-        run: |
-          docker build -t my-devsecops-blog ./blog-app
-          docker run -d --network zap-network --name blog-app -p 80:80 my-devsecops-blog
+        - name: Start My DevSecOps Web App
+          run: |
+            docker build -t my-devsecops-blog ./blog-app
+            docker run -d --network zap-network --name blog-app -p 8080:80 my-devsecops-blog
   
-      - name: Wait for Web App to Start
-        run: sleep 10  # Ensures app is ready
+        - name: Wait for Web App to Start
+          run: sleep 10  # Ensures app is ready
   
-      - name: Run OWASP ZAP Baseline Scan
-        continue-on-error: true
-        run: |
-          docker run --rm --network zap-network ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://blog-app:5000
+        - name: Run OWASP ZAP Baseline Scan (Using Host Networking)
+          run: |
+            docker run --rm --network host \
+            -v $(pwd)/zap-reports:/zap/wrk:rw \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://host.docker.internal:8080 -r zap_report.html
