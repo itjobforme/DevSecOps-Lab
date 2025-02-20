@@ -26,7 +26,7 @@ class BlogPost(db.Model):
 # Add the model to Flask-Admin
 admin.add_view(ModelView(BlogPost, db.session))
 
-# Route to display all blog posts
+# Route to display blog posts
 @app.route('/')
 def home():
     posts = BlogPost.query.all()
