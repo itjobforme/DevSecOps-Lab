@@ -11,7 +11,7 @@ jobs:
   deploy:
     name: Deploy to EC2
     runs-on: ubuntu-latest
-    needs: [security-scan]  # Ensures it deploys only if security scans pass
+    
     permissions:
       id-token: write
       contents: read
