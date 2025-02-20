@@ -19,7 +19,7 @@ app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(16))
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 
-# Initialize the database
+# Initialize database
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
