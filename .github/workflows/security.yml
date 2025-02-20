@@ -46,6 +46,7 @@ jobs:
   sast:
     name: Run Semgrep SAST Scan
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -64,6 +65,7 @@ jobs:
   dast:
     name: Run OWASP ZAP Scan
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -74,7 +76,7 @@ jobs:
       - name: Start My DevSecOps Web App
         run: |
           docker build -t my-devsecops-blog ./blog-app
-          docker run -d --network zap-network --name blog-app -p 5000:5000 my-devsecops-blog
+          docker run -d --network zap-network --name blog-app -p 80:80 my-devsecops-blog
   
       - name: Wait for Web App to Start
         run: sleep 10  # Ensures app is ready
