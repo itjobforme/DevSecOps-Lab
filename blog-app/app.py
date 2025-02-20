@@ -19,7 +19,7 @@ app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(16))
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 
-# Initialize database
+# Initialize the database
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -41,6 +41,12 @@ class User(db.Model, UserMixin):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# 🔹 Move BlogPost model **above** the admin setup
+class BlogPost(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+
 # Secure Admin Panel
 class SecureModelView(ModelView):
     def is_accessible(self):
@@ -55,10 +61,10 @@ class SecureAdminIndexView(AdminIndexView):
     def index(self):
         return super().index()
 
-# Set up Flask-Admin with authentication
+# ✅ Admin Setup **AFTER** Models are Defined
 admin = Admin(app, name="Blog Admin", template_mode="bootstrap3", index_view=SecureAdminIndexView())
 admin.add_view(SecureModelView(User, db.session))
-admin.add_view(SecureModelView(BlogPost, db.session))
+admin.add_view(SecureModelView(BlogPost, db.session))  # Now `BlogPost` is defined earlier
 
 # MFA Form for Login
 class LoginForm(FlaskForm):
