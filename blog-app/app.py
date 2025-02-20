@@ -14,7 +14,6 @@ from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_admin.form import rules
 
 app = Flask(__name__, template_folder="templates")
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
@@ -52,20 +51,15 @@ class BlogPost(db.Model):
     content = db.Column(db.Text, nullable=False)
 
 # Secure Admin Panel
-class UserAdmin(ModelView):
-    column_exclude_list = ['password_hash']
+class SecureModelView(ModelView):
+    column_exclude_list = ['password_hash', 'otp_secret']
     form_excluded_columns = ['password_hash', 'otp_secret']
-    
-    form_extra_fields = {
-        'password': PasswordField('Password'),
-        'otp_secret': StringField('OTP Secret')
-    }
 
-    def on_model_change(self, form, model, is_created):
-        if form.password.data:
-            model.set_password(form.password.data)
-        if not model.otp_secret:
-            model.otp_secret = pyotp.random_base32()
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for("login"))
 
 class SecureAdminIndexView(AdminIndexView):
     @expose("/")
@@ -74,8 +68,8 @@ class SecureAdminIndexView(AdminIndexView):
         return super().index()
 
 admin = Admin(app, name="Blog Admin", template_mode="bootstrap3", index_view=SecureAdminIndexView())
-admin.add_view(UserAdmin(User, db.session))
-admin.add_view(ModelView(BlogPost, db.session))
+admin.add_view(SecureModelView(User, db.session))
+admin.add_view(SecureModelView(BlogPost, db.session))
 
 # MFA Setup Route
 @app.route("/setup-mfa", methods=["GET", "POST"])
@@ -109,9 +103,7 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user and user.check_password(form.password.data):
-            # Check if MFA is required
             if user.otp_secret:
-                # Verify the OTP
                 totp = pyotp.TOTP(user.otp_secret)
                 if form.otp.data and totp.verify(form.otp.data):
                     login_user(user)
@@ -120,7 +112,6 @@ def login():
                 else:
                     flash("Invalid OTP code.", "danger")
             else:
-                # First-time login, prompt for MFA setup
                 login_user(user)
                 flash("First-time login. Please set up MFA.", "info")
                 return redirect(url_for("setup_mfa"))
@@ -142,7 +133,6 @@ def home():
     posts = BlogPost.query.all()
     return render_template("index.html", posts=posts)
 
-# Initialize the database if not already present
 if not os.path.exists('instance/blog.db'):
     with app.app_context():
         db.create_all()
