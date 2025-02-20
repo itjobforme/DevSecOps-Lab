@@ -1,45 +1,40 @@
-from flask import Flask
+import os
+
+from flask import Flask, redirect, render_template, url_for
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
+app.config['SECRET_KEY'] = 'your_secret_key'
 
-# Apply ProxyFix middleware to handle CloudFront headers correctly
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 
-@app.route("/")
+# Initialize the database
+db = SQLAlchemy(app)
+admin = Admin(app, name='Blog Admin', template_mode='bootstrap3')
+
+# Database model for blog posts
+class BlogPost(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+
+# Add the model to Flask-Admin
+admin.add_view(ModelView(BlogPost, db.session))
+
+# Route to display all blog posts
+@app.route('/')
 def home():
-    return """
-    <h1> DevSecOps Lab: Continuous Security Automation</h1>
-    <p>Welcome to my DevSecOps journey! This web app is automatically built, scanned, and deployed using a fully automated pipeline.</p>
+    posts = BlogPost.query.all()
+    return render_template('index.html', posts=posts)
 
-    <h2> What Has Been Achieved So Far</h2>
-    <ul>
-        <li>✅ <b>Infrastructure as Code:</b> Used Terraform to provision EC2, S3, networking components, and CloudFront for HTTPS.</li>
-        <li>✅ <b>Secure Configuration:</b> Enforced IAM policies, enabled IMDSv2, and removed SSH access by using AWS Systems Manager (SSM) for secure administration.</li>
-        <li>✅ <b>CI/CD Pipeline:</b> Configured GitHub Actions to:
-            <ul>
-                <li>Lint Terraform and Python code</li>
-                <li>Run security scans (Semgrep, OWASP ZAP)</li>
-                <li>Build and push Docker images to Docker Hub</li>
-                <li>Deploy updates automatically on EC2 using AWS SSM</li>
-            </ul>
-        </li>
-        <li>✅ <b>Zero Hardcoded Credentials:</b> Using IAM roles and OIDC-based Tokens stored in GitHub Secrets for authentication.</li>
-        <li>✅ <b>Automated Security Scans:</b> Integrated OWASP ZAP for DAST and Semgrep for SAST.</li>
-        <li>✅ <b>Dynamic Deployment:</b> Any code changes in <code>blog-app/</code> trigger an automatic deployment by updating and pushing a new Docker image.</li>
-        <li>✅ <b>Infrastructure Updates:</b> Any changes in <code>Terraform/</code> automatically deploy infrastructure updates to AWS.</li>
-        <li>✅ <b>Fully Dynamic Infrastructure:</b> DNS and tagging ensure resources remain flexible and automatically update without breaking dependencies.</li>
-    </ul>
+# Initialize the database if not already present
+if not os.path.exists('blog.db'):
+    with app.app_context():
+        db.create_all()
 
-    <h2>📅 Next Steps</h2>
-    <p>✅ Implement HTTPS via AWS ACM & Route 53 for automatic domain resolution. (complete!)</p>
-    <p>🔜 Integrate blog app with Flask + SQLite with an admin panel to manage blog posts.</p>
-    <p>🔜 Set up monitoring and alerting for security events.</p>
-    <p>🔜 Expand the blog with more hands-on DevSecOps lessons.</p>
-
-    <hr>
-    <p><i>Built with Flask, Terraform, and GitHub Actions. Secured with IAM roles, OIDC authentication, and automated infrastructure updates.</i></p>
-    """
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=80)
