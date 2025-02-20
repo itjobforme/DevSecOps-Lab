@@ -1,8 +1,10 @@
 import os
 import secrets
 import pyotp
+import qrcode
+from io import BytesIO
 
-from flask import Flask, redirect, render_template, url_for, request, flash
+from flask import Flask, redirect, render_template, url_for, request, flash, send_file
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
@@ -25,34 +27,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
-import qrcode
-from io import BytesIO
-from flask import send_file
-
-@app.route("/setup-mfa")
-@login_required
-def setup_mfa():
-    """Generate a QR code for Google Authenticator."""
-    otp_secret = os.getenv("FLASK_OTP_SECRET")
-    if not otp_secret:
-        flash("MFA is not configured. Contact the administrator.", "danger")
-        return redirect(url_for("admin.index"))
-
-    # Generate the OTP URI
-    otp_uri = f"otpauth://totp/DevSecOpsLab:{current_user.username}?secret={otp_secret}&issuer=DevSecOpsLab"
-
-    # Generate the QR Code
-    qr = qrcode.make(otp_uri)
-    img_io = BytesIO()
-    qr.save(img_io, "PNG")
-    img_io.seek(0)
-
-    return send_file(img_io, mimetype="image/png")
-
-
 # User Model
-import pyotp
-
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -65,12 +40,11 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# 🔹 Move BlogPost model **above** the admin setup
+# Blog Post Model
 class BlogPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -90,33 +64,42 @@ class SecureAdminIndexView(AdminIndexView):
     def index(self):
         return super().index()
 
-
 admin = Admin(app, name="Blog Admin", template_mode="bootstrap3", index_view=SecureAdminIndexView())
 admin.add_view(SecureModelView(User, db.session))
 admin.add_view(SecureModelView(BlogPost, db.session))
 
+# MFA Setup Route
+@app.route("/setup-mfa")
+@login_required
+def setup_mfa():
+    if not current_user.otp_secret:
+        flash("MFA is not configured for your account. Contact the administrator.", "danger")
+        return redirect(url_for("admin.index"))
 
+    otp_uri = f"otpauth://totp/DevSecOpsLab:{current_user.username}?secret={current_user.otp_secret}&issuer=DevSecOpsLab"
+
+    qr = qrcode.make(otp_uri)
+    img_io = BytesIO()
+    qr.save(img_io, "PNG")
+    img_io.seek(0)
+
+    return send_file(img_io, mimetype="image/png")
+
+# Login Form
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
     otp = StringField("OTP Code", validators=[DataRequired()])
     submit = SubmitField("Login")
 
+# Login Route
 @app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
-    
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
-        
         if user and user.check_password(form.password.data):
-            # Verify OTP
-            otp_secret = os.getenv("FLASK_OTP_SECRET")
-            if not otp_secret:
-                flash("MFA is not configured. Contact the administrator.", "danger")
-                return redirect(url_for("login"))
-
-            totp = pyotp.TOTP(otp_secret)
+            totp = pyotp.TOTP(user.otp_secret)
             if totp.verify(form.otp.data):
                 login_user(user)
                 flash("Logged in successfully!", "success")
@@ -125,9 +108,9 @@ def login():
                 flash("Invalid OTP code.", "danger")
         else:
             flash("Invalid username or password.", "danger")
-
     return render_template("login.html", form=form)
 
+# Logout Route
 @app.route("/logout")
 @login_required
 def logout():
@@ -135,14 +118,14 @@ def logout():
     flash("You have been logged out.", "info")
     return redirect(url_for("login"))
 
-# Route to display blog posts
+# Blog Home Route
 @app.route("/")
 def home():
     posts = BlogPost.query.all()
     return render_template("index.html", posts=posts)
 
 # Initialize the database if not already present
-if not os.path.exists('blog.db'):
+if not os.path.exists('instance/blog.db'):
     with app.app_context():
         db.create_all()
 
