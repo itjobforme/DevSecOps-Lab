@@ -25,6 +25,31 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
+import qrcode
+from io import BytesIO
+from flask import send_file
+
+@app.route("/setup-mfa")
+@login_required
+def setup_mfa():
+    """Generate a QR code for Google Authenticator."""
+    otp_secret = os.getenv("FLASK_OTP_SECRET")
+    if not otp_secret:
+        flash("MFA is not configured. Contact the administrator.", "danger")
+        return redirect(url_for("admin.index"))
+
+    # Generate the OTP URI
+    otp_uri = f"otpauth://totp/DevSecOpsLab:{current_user.username}?secret={otp_secret}&issuer=DevSecOpsLab"
+
+    # Generate the QR Code
+    qr = qrcode.make(otp_uri)
+    img_io = BytesIO()
+    qr.save(img_io, "PNG")
+    img_io.seek(0)
+
+    return send_file(img_io, mimetype="image/png")
+
+
 # User Model
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -61,12 +86,12 @@ class SecureAdminIndexView(AdminIndexView):
     def index(self):
         return super().index()
 
-# ✅ Admin Setup **AFTER** Models are Defined
+
 admin = Admin(app, name="Blog Admin", template_mode="bootstrap3", index_view=SecureAdminIndexView())
 admin.add_view(SecureModelView(User, db.session))
-admin.add_view(SecureModelView(BlogPost, db.session))  # Now `BlogPost` is defined earlier
+admin.add_view(SecureModelView(BlogPost, db.session))
 
-# MFA Form for Login
+
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
