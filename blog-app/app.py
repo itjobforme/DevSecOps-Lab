@@ -13,11 +13,11 @@ app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(16))
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 
-# Initialize the database
+
 db: SQLAlchemy = SQLAlchemy(app)
 admin = Admin(app, name='Blog Admin', template_mode='bootstrap3')
 
-# Database model for blog posts
+
 class BlogPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
