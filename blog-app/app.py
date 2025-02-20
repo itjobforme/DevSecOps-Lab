@@ -32,7 +32,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
-    otp_secret = db.Column(db.String(16), nullable=False, default=lambda: pyotp.random_base32())
+    otp_secret = db.Column(db.String(16), nullable=True, default=None)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -69,12 +69,13 @@ admin.add_view(SecureModelView(User, db.session))
 admin.add_view(SecureModelView(BlogPost, db.session))
 
 # MFA Setup Route
-@app.route("/setup-mfa")
+@app.route("/setup-mfa", methods=["GET", "POST"])
 @login_required
 def setup_mfa():
     if not current_user.otp_secret:
-        flash("MFA is not configured for your account. Contact the administrator.", "danger")
-        return redirect(url_for("admin.index"))
+        # Generate a new OTP secret for the user
+        current_user.otp_secret = pyotp.random_base32()
+        db.session.commit()
 
     otp_uri = f"otpauth://totp/DevSecOpsLab:{current_user.username}?secret={current_user.otp_secret}&issuer=DevSecOpsLab"
 
@@ -89,7 +90,7 @@ def setup_mfa():
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
-    otp = StringField("OTP Code", validators=[DataRequired()])
+    otp = StringField("OTP Code")
     submit = SubmitField("Login")
 
 # Login Route
@@ -99,13 +100,21 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user and user.check_password(form.password.data):
-            totp = pyotp.TOTP(user.otp_secret)
-            if totp.verify(form.otp.data):
-                login_user(user)
-                flash("Logged in successfully!", "success")
-                return redirect(url_for("admin.index"))
+            # Check if MFA is required
+            if user.otp_secret:
+                # Verify the OTP
+                totp = pyotp.TOTP(user.otp_secret)
+                if form.otp.data and totp.verify(form.otp.data):
+                    login_user(user)
+                    flash("Logged in successfully!", "success")
+                    return redirect(url_for("admin.index"))
+                else:
+                    flash("Invalid OTP code.", "danger")
             else:
-                flash("Invalid OTP code.", "danger")
+                # First-time login, prompt for MFA setup
+                login_user(user)
+                flash("First-time login. Please set up MFA.", "info")
+                return redirect(url_for("setup_mfa"))
         else:
             flash("Invalid username or password.", "danger")
     return render_template("login.html", form=form)
