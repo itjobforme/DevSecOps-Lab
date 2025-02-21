@@ -16,5 +16,7 @@ class SecureModelView(ModelView):
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for("login"))
 
-admin.add_view(SecureModelView(User, db.session))
-admin.add_view(SecureModelView(BlogPost, db.session))
+def init_admin(app):
+    admin.init_app(app)
+    admin.add_view(SecureModelView(User, db.session))
+    admin.add_view(SecureModelView(BlogPost, db.session))
