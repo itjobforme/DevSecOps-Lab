@@ -1,6 +1,6 @@
 import os
 import secrets
-from flask import Flask
+from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -22,11 +22,11 @@ def create_app():
 
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 
-    # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = "login"
 
+    # Import and initialize the admin panel
     from admin import init_admin
     init_admin(app)
 
