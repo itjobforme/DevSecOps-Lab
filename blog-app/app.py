@@ -56,9 +56,19 @@ class BlogPost(db.Model):
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
 
-# Secure Admin Panel
-class SecureModelView(ModelView):
+# Secure Admin Panel for Users
+class SecureUserModelView(ModelView):
     form_columns = ['username', 'password_hash', 'otp_secret']
+
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for("login"))
+
+# Secure Admin Panel for Blog Posts
+class SecureBlogPostModelView(ModelView):
+    form_columns = ['title', 'content']
 
     def is_accessible(self):
         return current_user.is_authenticated
@@ -73,8 +83,8 @@ class SecureAdminIndexView(AdminIndexView):
         return super().index()
 
 admin = Admin(app, name="Blog Admin", template_mode="bootstrap3", index_view=SecureAdminIndexView())
-admin.add_view(SecureModelView(User, db.session))
-admin.add_view(SecureModelView(BlogPost, db.session))
+admin.add_view(SecureUserModelView(User, db.session))
+admin.add_view(SecureBlogPostModelView(BlogPost, db.session))
 
 # MFA Setup Route
 @app.route("/setup-mfa", methods=["GET", "POST"])
