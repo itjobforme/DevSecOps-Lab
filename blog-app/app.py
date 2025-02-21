@@ -58,7 +58,15 @@ class BlogPost(db.Model):
 
 # Secure Admin Panel for Users
 class SecureUserModelView(ModelView):
-    form_columns = ['username', 'password_hash', 'otp_secret']
+    form_columns = ['username', 'password']
+
+    form_extra_fields = {
+        'password': PasswordField('Password')
+    }
+
+    def on_model_change(self, form, model, is_created):
+        if form.password.data:
+            model.set_password(form.password.data)
 
     def is_accessible(self):
         return current_user.is_authenticated
