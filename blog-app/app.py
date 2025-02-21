@@ -6,23 +6,35 @@ from flask_login import LoginManager, UserMixin
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
 
-app = Flask(__name__, template_folder="templates")
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
-secret_key_path = '/app/instance/FLASK_SECRET_KEY'
-
-if os.path.exists(secret_key_path):
-    with open(secret_key_path, 'r') as f:
-        app.config['SECRET_KEY'] = f.read().strip()
-else:
-    app.config['SECRET_KEY'] = secrets.token_hex(16)
-
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
-
-# Initialize the database
-db = SQLAlchemy(app)
+db = SQLAlchemy()
 login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = "login"
+
+def create_app():
+    app = Flask(__name__, template_folder="templates")
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
+    secret_key_path = '/app/instance/FLASK_SECRET_KEY'
+
+    if os.path.exists(secret_key_path):
+        with open(secret_key_path, 'r') as f:
+            app.config['SECRET_KEY'] = f.read().strip()
+    else:
+        app.config['SECRET_KEY'] = secrets.token_hex(16)
+
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
+
+    # Initialize extensions
+    db.init_app(app)
+    login_manager.init_app(app)
+    login_manager.login_view = "login"
+
+    from admin import init_admin
+    init_admin(app)
+
+    with app.app_context():
+        if not os.path.exists('instance/blog.db'):
+            db.create_all()
+
+    return app
 
 # User Model
 class User(db.Model, UserMixin):
@@ -47,14 +59,6 @@ class BlogPost(db.Model):
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
 
-# Initialize the admin interface after defining models
-from admin import admin
-admin.init_app(app)
-
-# Create the database if it doesn't exist
-if not os.path.exists('instance/blog.db'):
-    with app.app_context():
-        db.create_all()
-
 if __name__ == '__main__':
+    app = create_app()
     app.run(host='0.0.0.0', port=80)
