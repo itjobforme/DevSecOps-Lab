@@ -23,7 +23,7 @@ if os.path.exists(secret_key_path):
     with open(secret_key_path, 'r') as f:
         app.config['SECRET_KEY'] = f.read().strip()
 else:
-    app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(16))
+    app.config['SECRET_KEY'] = secrets.token_hex(16)
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 
