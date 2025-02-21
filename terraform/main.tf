@@ -309,7 +309,6 @@ resource "aws_security_group" "devsecops_sg" {
   }
 }
 
-
 ### Deploy an EC2 Instance in the Public Subnet
 resource "aws_instance" "devsecops_blog" {
   ami                         = "ami-09e67e426f25ce0d7" # Ubuntu AMI
@@ -326,14 +325,8 @@ resource "aws_instance" "devsecops_blog" {
     http_endpoint = "enabled"
   }
 
-  # Ensure dependencies are created first
-  depends_on = [
-    aws_iam_instance_profile.ec2_ssm_profile,
-    aws_volume_attachment.devsecops_blog_data_attachment
-  ]
-
-  # Use base64-encoded user data for better compatibility
-  user_data_base64 = filebase64("user-data.sh")
+  # User Data Script to Format and Mount the EBS Volume
+  user_data = file("user-data.sh")
 
   tags = {
     Name = "DevSecOps-Blog"
@@ -355,5 +348,9 @@ resource "aws_volume_attachment" "devsecops_blog_data_attachment" {
   volume_id   = aws_ebs_volume.devsecops_blog_data.id
   instance_id = aws_instance.devsecops_blog.id
   force_detach = true
-}
 
+  # Ensure the EBS volume is attached only after the instance is created
+  depends_on = [
+    aws_instance.devsecops_blog
+  ]
+}
