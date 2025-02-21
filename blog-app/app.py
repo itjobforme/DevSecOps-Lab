@@ -20,7 +20,6 @@ else:
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 
-# Initialize extensions
 db.init_app(app)
 
 login_manager = LoginManager()
@@ -39,7 +38,6 @@ def home():
     posts = BlogPost.query.all()
     return render_template("index.html", posts=posts)
 
-# Create the database if not present
 if not os.path.exists('instance/blog.db'):
     with app.app_context():
         db.create_all()
