@@ -327,7 +327,10 @@ resource "aws_instance" "devsecops_blog" {
   }
 
   # Ensure dependencies are created first
-  depends_on = [aws_iam_instance_profile.ec2_ssm_profile]
+  depends_on = [
+    aws_iam_instance_profile.ec2_ssm_profile,
+    aws_volume_attachment.devsecops_blog_data_attachment
+  ]
 
   # Use base64-encoded user data for better compatibility
   user_data_base64 = filebase64("user-data.sh")
@@ -335,5 +338,22 @@ resource "aws_instance" "devsecops_blog" {
   tags = {
     Name = "DevSecOps-Blog"
   }
+}
+
+### Create an EBS Volume in the Same Availability Zone as the EC2 Instance
+resource "aws_ebs_volume" "devsecops_blog_data" {
+  availability_zone = "us-east-1a" # Make sure this matches your EC2 instance AZ
+  size              = 10 # Size in GB
+  tags = {
+    Name = "DevSecOps-Blog-Data"
+  }
+}
+
+### Attach the EBS Volume to the EC2 Instance
+resource "aws_volume_attachment" "devsecops_blog_data_attachment" {
+  device_name = "/dev/sdf" # Linux will mount this as /dev/xvdf
+  volume_id   = aws_ebs_volume.devsecops_blog_data.id
+  instance_id = aws_instance.devsecops_blog.id
+  force_detach = true
 }
 
