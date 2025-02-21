@@ -58,9 +58,7 @@ class BlogPost(db.Model):
 
 # Secure Admin Panel
 class SecureModelView(ModelView):
-    column_exclude_list = ['password_hash', 'otp_secret']
-    form_excluded_columns = ['password_hash', 'otp_secret']
-    form_columns = ['username']
+    form_columns = ['username', 'password_hash', 'otp_secret']
 
     def is_accessible(self):
         return current_user.is_authenticated
@@ -83,7 +81,6 @@ admin.add_view(SecureModelView(BlogPost, db.session))
 @login_required
 def setup_mfa():
     if not current_user.otp_secret:
-        # Generate a new OTP secret for the user
         current_user.otp_secret = pyotp.random_base32()
         db.session.commit()
 
