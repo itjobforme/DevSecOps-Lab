@@ -2,6 +2,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user
 from flask import redirect, url_for
+
 from app import db, User, BlogPost
 
 admin = Admin(name="Blog Admin", template_mode="bootstrap3")
