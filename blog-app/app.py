@@ -22,13 +22,14 @@ def create_app():
 
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 
+    # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = "login"
 
     # Import and initialize the admin panel
     from admin import init_admin
-    init_admin(app)
+    init_admin(app, db)
 
     with app.app_context():
         if not os.path.exists('instance/blog.db'):
@@ -36,28 +37,10 @@ def create_app():
 
     return app
 
-# User Model
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(200), nullable=False)
-    otp_secret = db.Column(db.String(16), nullable=True, default=None)
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
 @login_manager.user_loader
 def load_user(user_id):
+    from models import User
     return User.query.get(int(user_id))
-
-# Blog Post Model
-class BlogPost(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    content = db.Column(db.Text, nullable=False)
 
 if __name__ == '__main__':
     app = create_app()
