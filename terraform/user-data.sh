@@ -38,11 +38,42 @@ sudo systemctl restart snap.amazon-ssm-agent.amazon-ssm-agent.service || true
 # Wait to ensure SSM is up
 sleep 10
 
-# Pull and run the Docker container
+echo "=== Configuring EBS Volume ==="
+
+# Format the EBS volume only if not already formatted
+if ! lsblk | grep -q "xvdf"; then
+    echo "Formatting EBS volume..."
+    sudo mkfs -t ext4 /dev/xvdf
+fi
+
+# Create the mount point directory
+echo "Creating mount point for EBS volume..."
+sudo mkdir -p /opt/devsecops-blog/data
+
+# Mount the volume
+echo "Mounting EBS volume..."
+sudo mount /dev/xvdf /opt/devsecops-blog/data
+
+# Ensure the volume mounts on reboot
+echo "Updating /etc/fstab for EBS volume..."
+echo '/dev/xvdf /opt/devsecops-blog/data ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+
+# Set appropriate permissions
+echo "Setting permissions for mounted volume..."
+sudo chown -R ubuntu:ubuntu /opt/devsecops-blog/data
+sudo chmod -R 755 /opt/devsecops-blog/data
+
+# Pull and run the Docker container with persistent storage
 echo "Pulling latest Docker image..."
+sudo docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
 sudo docker pull itjobforme/devsecops-lab:latest
 
-echo "Running Docker container..."
-sudo docker run -d -p 80:80 --restart unless-stopped --name devsecops-blog itjobforme/devsecops-lab:latest
+echo "Running Docker container with persistent storage..."
+sudo docker stop devsecops-blog || true
+sudo docker rm devsecops-blog || true
+sudo docker run -d -p 80:80 --restart unless-stopped --name devsecops-blog \
+  -v /opt/devsecops-blog/data:/app/instance \
+  -e FLASK_SECRET_KEY="${FLASK_SECRET_KEY}" \
+  itjobforme/devsecops-lab:latest
 
 echo "=== User Data Script Completed Successfully ==="
