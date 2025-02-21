@@ -3,7 +3,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user
 from flask import redirect, url_for
 
-from app import db, User, BlogPost
+from models import User, BlogPost
 
 admin = Admin(name="Blog Admin", template_mode="bootstrap3")
 
@@ -17,7 +17,7 @@ class SecureModelView(ModelView):
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for("login"))
 
-def init_admin(app):
+def init_admin(app, db):
     admin.init_app(app)
     admin.add_view(SecureModelView(User, db.session))
     admin.add_view(SecureModelView(BlogPost, db.session))
