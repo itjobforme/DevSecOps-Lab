@@ -47,13 +47,13 @@ jobs:
               "sudo docker stop devsecops-blog || true",
               "sudo docker rm devsecops-blog || true",
               "sudo mkdir -p /var/devsecops-blog/db",
-              "echo ${FLASK_SECRET_KEY} | sudo tee /var/devsecops-blog/db/FLASK_SECRET_KEY",
-              "sudo chmod 644 /var/devsecops-blog/db/FLASK_SECRET_KEY",
-              "sudo chown 1000:1000 /var/devsecops-blog/db/FLASK_SECRET_KEY",
+              "sudo chown 1000:1000 /var/devsecops-blog/db",
+              "echo -n ${{ secrets.FLASK_SECRET_KEY }} | sudo tee /var/devsecops-blog/db/FLASK_SECRET_KEY",
+              "sudo chmod 600 /var/devsecops-blog/db/FLASK_SECRET_KEY",
               "sudo docker run -d -p 80:80 --name devsecops-blog \
                   -v /var/devsecops-blog/db:/app/instance \
-                  -e FLASK_SECRET_KEY=$(cat /var/devsecops-blog/db/FLASK_SECRET_KEY) \
                   itjobforme/devsecops-lab:latest"
             ]' \
             --region us-east-1
+
 
