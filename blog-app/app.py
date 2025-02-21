@@ -17,7 +17,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__, template_folder="templates")
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
-app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(16))
+secret_key_path = '/app/instance/FLASK_SECRET_KEY'
+
+if os.path.exists(secret_key_path):
+    with open(secret_key_path, 'r') as f:
+        app.config['SECRET_KEY'] = f.read().strip()
+else:
+    app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(16))
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 
