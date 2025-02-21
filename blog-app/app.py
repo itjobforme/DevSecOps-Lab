@@ -27,7 +27,6 @@ else:
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 
-# Initialize the database
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
