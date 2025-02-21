@@ -1,12 +1,10 @@
 import os
 import secrets
-from flask import Flask, redirect, render_template, url_for, request, flash
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_login import LoginManager, UserMixin
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
-
-from admin import admin
 
 app = Flask(__name__, template_folder="templates")
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
@@ -49,8 +47,11 @@ class BlogPost(db.Model):
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
 
+# Initialize the admin interface after defining models
+from admin import admin
 admin.init_app(app)
 
+# Create the database if it doesn't exist
 if not os.path.exists('instance/blog.db'):
     with app.app_context():
         db.create_all()
