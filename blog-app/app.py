@@ -1,5 +1,6 @@
 import os
 import secrets
+import logging
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -30,19 +31,31 @@ login_manager.login_view = "login"
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+admin.init_app(app)
+
+# Set up logging
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+
+file_handler = logging.FileHandler('logs/flask.log')
+file_handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
+file_handler.setFormatter(formatter)
+app.logger.addHandler(file_handler)
+
+app.logger.setLevel(logging.INFO)
+app.logger.info('DevSecOps Blog Startup')
+
 # Route for the main site
 @app.route("/")
 def home():
+    app.logger.info('Accessing the home page')
     posts = BlogPost.query.all()
     return render_template("index.html", posts=posts)
 
-admin.init_app(app)  # Moved after route definition
-
-# Ensure the database is created
-with app.app_context():
-    if not os.path.exists('instance/blog.db'):
+if not os.path.exists('instance/blog.db'):
+    with app.app_context():
         db.create_all()
-    print(app.url_map)  # To verify all routes are loaded
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)
