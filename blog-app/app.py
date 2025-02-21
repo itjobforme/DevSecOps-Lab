@@ -27,6 +27,7 @@ else:
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 
+# Initialize the database
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -57,10 +58,10 @@ class BlogPost(db.Model):
 
 # Secure Admin Panel for Users
 class SecureUserModelView(ModelView):
-    form_columns = ['username', 'password']
-
+    form_columns = ['username', 'password_hash']
+    
     form_extra_fields = {
-        'password': PasswordField('Password')
+        'password': PasswordField('New Password', default="")
     }
 
     def on_model_change(self, form, model, is_created):
