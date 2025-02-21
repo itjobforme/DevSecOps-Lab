@@ -34,10 +34,13 @@ def load_user(user_id):
 admin.init_app(app)
 
 # Set up logging
-if not os.path.exists('logs'):
-    os.makedirs('logs')
+log_dir = '/app/logs'
+log_file = os.path.join(log_dir, 'flask.log')
 
-file_handler = logging.FileHandler('logs/flask.log')
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir, exist_ok=True)
+
+file_handler = logging.FileHandler(log_file)
 file_handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
 file_handler.setFormatter(formatter)
@@ -53,7 +56,7 @@ def home():
     posts = BlogPost.query.all()
     return render_template("index.html", posts=posts)
 
-if not os.path.exists('instance/blog.db'):
+if not os.path.exists('/app/instance/blog.db'):
     with app.app_context():
         db.create_all()
 
