@@ -1,6 +1,6 @@
 import os
 import secrets
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -32,6 +32,12 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 admin.init_app(app)
+
+# Route for the main site
+@app.route("/")
+def home():
+    posts = BlogPost.query.all()
+    return render_template("index.html", posts=posts)
 
 # Create the database if not present
 if not os.path.exists('instance/blog.db'):
