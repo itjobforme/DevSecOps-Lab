@@ -51,9 +51,10 @@ jobs:
               "echo -n ${{ secrets.FLASK_SECRET_KEY }} | sudo tee /var/devsecops-blog/db/FLASK_SECRET_KEY",
               "sudo chmod 600 /var/devsecops-blog/db/FLASK_SECRET_KEY",
               "sudo docker run -d -p 80:80 --name devsecops-blog \
+                  -e FLASK_SECRET_KEY=${{ secrets.FLASK_SECRET_KEY }} \
                   -v /var/devsecops-blog/db:/app/instance \
                   itjobforme/devsecops-lab:latest"
             ]' \
             --region us-east-1
-
+      
 
