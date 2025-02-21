@@ -61,6 +61,17 @@ class SecureModelView(ModelView):
     column_exclude_list = ['password_hash', 'otp_secret']
     form_excluded_columns = ['password_hash', 'otp_secret']
 
+    form_overrides = {
+        'password': PasswordField,
+        'otp_secret': StringField
+    }
+
+    form_columns = ['username', 'password']
+
+    def on_model_change(self, form, model, is_created):
+        if form.password.data:
+            model.set_password(form.password.data)
+
     def is_accessible(self):
         return current_user.is_authenticated
 
@@ -82,7 +93,6 @@ admin.add_view(SecureModelView(BlogPost, db.session))
 @login_required
 def setup_mfa():
     if not current_user.otp_secret:
-        # Generate a new OTP secret for the user
         current_user.otp_secret = pyotp.random_base32()
         db.session.commit()
 
