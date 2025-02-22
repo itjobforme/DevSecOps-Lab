@@ -1,14 +1,14 @@
-name: Deploy Terraform on AWS
+#name: Deploy Terraform on AWS
 
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'terraform/**'   
+#on:
+ # push:
+  #  branches:
+   #   - main
+    #paths:
+     # - 'terraform/**'   
 
-jobs:
-  terraform:
+#jobs:
+ # terraform:
     name: Deploy to AWS
     runs-on: ubuntu-latest
     permissions:
