@@ -2,23 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Admin</title>
+    <title>Login</title>
 </head>
 <body>
-    <h2>Admin Login</h2>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <label for="username">Username:</label>
-        {{ form.username }}
-        <br>
-        <label for="password">Password:</label>
-        {{ form.password }}
-        <br>
-        <label for="otp">OTP Code:</label>
-        {{ form.otp }}
-        <br>
-        <button type="submit">Login</button>
+    <h2>Login</h2>
+    <form method="post" action="/login">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" required><br>
+
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" required><br>
+
+        <label for="otp">OTP Code:</label><br>
+        <input type="text" id="otp" name="otp" placeholder="Optional if no OTP enabled"><br><br>
+
+        <input type="submit" value="Login">
     </form>
 </body>
 </html>
