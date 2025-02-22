@@ -1,7 +1,7 @@
 resource "azurerm_kubernetes_cluster" "aks" {
   name                = "devsecops-aks"
-  location            = azurerm_resource_group.devsecops_rg.location
-  resource_group_name = azurerm_resource_group.devsecops_rg.name
+  location            = data.azurerm_resource_group.devsecops_rg.location
+  resource_group_name = data.azurerm_resource_group.devsecops_rg.name
   dns_prefix          = "devsecops-k8s"
 
   default_node_pool {
@@ -24,10 +24,4 @@ resource "azurerm_kubernetes_cluster" "aks" {
       default_node_pool[0].node_count,
     ]
   }
-}
-
-resource "azurerm_role_assignment" "aks_sp_role" {
-  principal_id   = azurerm_kubernetes_cluster.aks.identity[0].principal_id
-  role_definition_name = "Contributor"
-  scope          = azurerm_resource_group.devsecops_rg.id
 }
