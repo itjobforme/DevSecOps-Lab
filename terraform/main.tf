@@ -325,13 +325,14 @@ resource "aws_instance" "devsecops_blog" {
     http_endpoint = "enabled"
   }
 
-  # User Data Script to Format and Mount the EBS Volume
+  # Updated User Data Script
   user_data = file("user-data.sh")
 
   tags = {
     Name = "DevSecOps-Blog"
   }
 }
+
 
 ### Create an EBS Volume in the Same Availability Zone as the EC2 Instance
 resource "aws_ebs_volume" "devsecops_blog_data" {
