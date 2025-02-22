@@ -21,7 +21,6 @@ jobs:
 
     - name: Configure OIDC Environment Variables
       run: |
-        echo "Setting up OIDC environment variables"
         echo "ARM_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
         echo "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
         echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
@@ -37,7 +36,20 @@ jobs:
         cd terraform/azure
         terraform init
 
-    - name: Apply Terraform Configuration
+    # Apply only the storage resources first
+    - name: Apply Terraform Storage Configuration
+      run: |
+        cd terraform/azure
+        terraform apply -auto-approve -target=azurerm_storage_account.tfstate -target=azurerm_storage_container.tfstate
+
+    # Re-initialize the backend
+    - name: Re-initialize Terraform with Backend
+      run: |
+        cd terraform/azure
+        terraform init
+
+    # Apply the remaining infrastructure
+    - name: Apply Remaining Terraform Configuration
       run: |
         cd terraform/azure
         terraform apply -auto-approve
