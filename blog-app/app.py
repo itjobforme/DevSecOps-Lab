@@ -1,10 +1,12 @@
 import os
 import secrets
 import logging
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.security import check_password_hash
+import pyotp
 
 from models import db, User, BlogPost
 from admin import admin
@@ -56,6 +58,35 @@ def home():
     posts = BlogPost.query.all()
     return render_template("index.html", posts=posts)
 
+# Add the /login route
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    app.logger.info('Accessing the login page')
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        otp = request.form.get("otp")
+
+        user = User.query.filter_by(username=username).first()
+
+        if user and check_password_hash(user.password_hash, password):
+            # Verify OTP if the user has one set up
+            if user.otp_secret:
+                totp = pyotp.TOTP(user.otp_secret)
+                if not totp.verify(otp):
+                    flash("Invalid OTP. Please try again.", "danger")
+                    return redirect(url_for("login"))
+
+            login_user(user)
+            app.logger.info(f'User {username} logged in successfully')
+            return redirect(url_for("admin.index"))
+
+        flash("Invalid username or password.", "danger")
+        app.logger.warning(f'Failed login attempt for user {username}')
+
+    return render_template("login.html")
+
+# Ensure the database is created
 if not os.path.exists('/app/instance/blog.db'):
     with app.app_context():
         db.create_all()
