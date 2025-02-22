@@ -40,15 +40,18 @@ sleep 10
 
 echo "=== Configuring EBS Volume ==="
 
-# Format the EBS volume only if not already formatted
-if ! lsblk | grep -q "xvdf"; then
+# Check if the EBS volume is formatted
+if ! sudo blkid /dev/xvdf; then
     echo "Formatting EBS volume..."
     sudo mkfs -t ext4 /dev/xvdf
+else
+    echo "EBS volume is already formatted."
 fi
 
 # Create the mount point directory
 echo "Creating mount point for EBS volume..."
 sudo mkdir -p /opt/devsecops-blog/data
+sudo mkdir -p /opt/devsecops-blog/logs
 
 # Mount the volume
 echo "Mounting EBS volume..."
