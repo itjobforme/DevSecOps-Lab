@@ -1,8 +1,0 @@
-flask-wtf
-WTForms==3.1.2
-pyotp
-flask-login
-flask-sqlalchemy
-flask-admin
-werkzeug
-qrcode[pil]
