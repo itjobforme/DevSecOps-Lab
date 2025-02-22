@@ -39,7 +39,7 @@ def login():
             flash("Logged in successfully!", "success")
             return redirect(url_for("home"))
         else:
-            flash("Incorrect password.", "danger")
+            flash("Password incorrect.", "danger")
     
     return render_template("login.html")
 
