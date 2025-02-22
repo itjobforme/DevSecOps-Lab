@@ -1,17 +1,17 @@
-name: Deploy DevSecOps Lab Blog
+name: Deploy Docker app to AWS
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'blog-app/**'
+      - 'docker-app/**'
 
 jobs:
   deploy:
     name: Deploy to EC2
     runs-on: ubuntu-latest
-    
+
     permissions:
       id-token: write
       contents: read
@@ -28,7 +28,7 @@ jobs:
           audience: sts.amazonaws.com
 
       - name: Build Docker Image
-        run: docker build -t itjobforme/devsecops-lab:latest ./blog-app
+        run: docker build -t itjobforme/devsecops-lab:latest ./docker-app
 
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin

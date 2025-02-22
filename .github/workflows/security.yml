@@ -20,7 +20,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.3.0  
+          terraform_version: 1.3.0
 
       - name: Run Terraform Format
         run: terraform fmt -recursive
@@ -47,7 +47,7 @@ jobs:
         run: pip install semgrep
 
       - name: Run Semgrep Auto Scan
-        run: semgrep --config=auto blog-app/
+        run: semgrep --config=auto docker-app/
 
       - name: Run Custom Security Rules
         run: |
@@ -61,18 +61,18 @@ jobs:
       steps:
         - name: Checkout Code
           uses: actions/checkout@v3
-  
+
         - name: Create Docker Network
           run: docker network create zap-network
-  
+
         - name: Start My DevSecOps Web App
           run: |
-            docker build -t my-devsecops-blog ./blog-app
+            docker build -t my-devsecops-blog ./docker-app
             docker run -d --network zap-network --name blog-app -p 8080:80 my-devsecops-blog
-  
+
         - name: Wait for Web App to Start
           run: sleep 10  # Ensures app is ready
-  
+
         - name: Run OWASP ZAP Baseline Scan (Using Host Networking)
           run: |
             docker run --rm --network host \

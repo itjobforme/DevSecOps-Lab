@@ -1,0 +1,37 @@
+name: Deploy Azure Infrastructure with Terraform
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/azure/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Initialize Terraform
+      run: |
+        cd terraform/azure
+        terraform init
+
+    - name: Apply Terraform Configuration
+      run: |
+        cd terraform/azure
+        terraform apply -auto-approve
