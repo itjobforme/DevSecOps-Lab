@@ -26,6 +26,11 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION }}
         audience: sts.amazonaws.com
 
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.7
+
     - name: Initialize Terraform
       run: |
         cd terraform/aws
