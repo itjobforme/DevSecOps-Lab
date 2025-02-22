@@ -1,7 +1,7 @@
 resource "azurerm_public_ip" "ingress_ip" {
   name                = "devsecops-ingress-ip"
-  resource_group_name = var.resource_group_name
-  location            = var.location
+  resource_group_name = azurerm_resource_group.devsecops_rg.name
+  location            = azurerm_resource_group.devsecops_rg.location
   allocation_method   = "Static"
   sku                 = "Standard"
 }
