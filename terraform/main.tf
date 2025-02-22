@@ -84,9 +84,6 @@ resource "aws_route53_record" "blog_dns" {
   }
 }
 
-
-
-### Create an IAM Role for EC2 with SSM Access
 resource "aws_iam_role" "ec2_ssm_role" {
   name = "DevSecOpsEC2SSMRole"
 
