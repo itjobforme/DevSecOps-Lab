@@ -26,7 +26,6 @@ resource "azurerm_storage_account" "tfstate" {
   }
 }
 
-# Blob Container for State Files
 resource "azurerm_storage_container" "tfstate" {
   name                  = "tfstate"
   storage_account_name  = azurerm_storage_account.tfstate.name
