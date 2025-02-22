@@ -36,20 +36,7 @@ jobs:
         cd terraform/azure
         terraform init
 
-    # Apply only the storage resources first
-    - name: Apply Terraform Storage Configuration
-      run: |
-        cd terraform/azure
-        terraform apply -auto-approve -target=azurerm_storage_account.tfstate -target=azurerm_storage_container.tfstate
-
-    # Re-initialize the backend
-    - name: Re-initialize Terraform with Backend
-      run: |
-        cd terraform/azure
-        terraform init
-
-    # Apply the remaining infrastructure
-    - name: Apply Remaining Terraform Configuration
+    - name: Apply Terraform Configuration
       run: |
         cd terraform/azure
         terraform apply -auto-approve
