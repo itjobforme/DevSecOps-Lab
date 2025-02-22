@@ -63,7 +63,7 @@ resource "aws_lb" "devsecops_alb" {
 
   enable_deletion_protection = false
 
-  depends_on = [aws_acm_certificate_validation.blog_cert_validation] # Ensure the cert is validated before ALB deploys
+  depends_on = [aws_acm_certificate_validation.blog_cert_validation]
 
 
   tags = {
@@ -229,8 +229,6 @@ resource "aws_lb_target_group" "devsecops_tg" {
     healthy_threshold   = 2
     unhealthy_threshold = 2
   }
-
-  depends_on = [aws_lb_listener.https_listener]
 
   tags = {
     Name = "DevSecOps-TG"
