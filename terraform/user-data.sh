@@ -11,7 +11,7 @@ if [ -f /etc/environment ]; then
     source /etc/environment
 fi
 
-# Update and install required packages including AWS CLI
+# Update required packages including AWS CLI
 sudo apt update -y
 sudo apt upgrade -y
 sudo apt install -y docker.io python3 python3-pip awscli
