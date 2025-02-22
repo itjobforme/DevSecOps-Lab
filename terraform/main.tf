@@ -235,7 +235,6 @@ resource "aws_lb_target_group" "devsecops_tg" {
   }
 }
 
-# Target Group Attachment
 resource "aws_lb_target_group_attachment" "devsecops_tg_attachment" {
   target_group_arn = aws_lb_target_group.devsecops_tg.arn
   target_id        = aws_instance.devsecops_blog.id
