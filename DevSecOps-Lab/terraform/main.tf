@@ -310,7 +310,6 @@ resource "aws_security_group" "devsecops_sg" {
 }
 
 ### Deploy an EC2 Instance in the Public Subnet
-# Updated User Data Script in main.tf
 resource "aws_instance" "devsecops_blog" {
   ami                         = "ami-09e67e426f25ce0d7" # Ubuntu AMI
   instance_type               = "t2.micro"
@@ -333,8 +332,6 @@ resource "aws_instance" "devsecops_blog" {
     Name = "DevSecOps-Blog"
   }
 }
-<<<<<<< HEAD
-
 
 
 ### Create an EBS Volume in the Same Availability Zone as the EC2 Instance
@@ -358,5 +355,3 @@ resource "aws_volume_attachment" "devsecops_blog_data_attachment" {
     aws_instance.devsecops_blog
   ]
 }
-=======
->>>>>>> 202bd45 (Fixed repository structure and added Simple Flask Blog)

@@ -1,0 +1,36 @@
+rules:
+  - id: hardcoded-credentials
+    patterns:
+      - pattern: |
+          $VAR = "$SECRET"
+    message: "Hardcoded secrets detected! Use environment variables instead."
+    languages: [python, javascript, bash]
+    severity: ERROR
+
+  - id: dangerous-eval
+    pattern: eval($CODE)
+    message: "Avoid using eval() as it can lead to remote code execution vulnerabilities."
+    languages: [python, javascript]
+    severity: WARNING
+
+  - id: weak-hashing
+    patterns:
+      - pattern: hashlib.md5($INPUT)
+      - pattern: hashlib.sha1($INPUT)
+    message: "Weak hashing algorithm detected! Use SHA-256 or stronger."
+    languages: [python]
+    severity: ERROR
+
+  - id: insecure-requests
+    pattern: requests.get($URL, verify=False)
+    message: "Unverified HTTPS request detected! This can expose data to MITM attacks."
+    languages: [python]
+    severity: WARNING
+
+  - id: hardcoded-aws-keys
+    patterns:
+      - pattern: |
+          "AKIA[A-Z0-9]{16}"
+    message: "Hardcoded AWS Access Key detected! Use environment variables instead."
+    languages: [python, javascript, bash]
+    severity: ERROR

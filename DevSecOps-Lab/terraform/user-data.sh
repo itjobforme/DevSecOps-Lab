@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 #!/bin/bash
-=======
->>>>>>> 202bd45 (Fixed repository structure and added Simple Flask Blog)
 set -euxo pipefail
 
 # Redirect all output to a log file
@@ -48,18 +45,17 @@ echo '/dev/xvdf /opt/devsecops-blog/data ext4 defaults,nofail 0 2' | sudo tee -a
 sudo chown -R ubuntu:ubuntu /opt/devsecops-blog/data
 sudo chmod -R 755 /opt/devsecops-blog/data
 
-# Docker login and pull the new image
+# Pull and run the Docker container with persistent storage
 sudo docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
-sudo docker pull simple-flask-blog:latest
+sudo docker pull itjobforme/devsecops-lab:latest
 
-# Stop and remove any existing container
-sudo docker stop simple-flask-blog || true
-sudo docker rm simple-flask-blog || true
+sudo docker stop devsecops-blog || true
+sudo docker rm devsecops-blog || true
 
-# Run the new container with updated volume and environment variable
-sudo docker run -d -p 80:5000 --restart unless-stopped --name simple-flask-blog \
+sudo docker run -d -p 80:80 --restart unless-stopped --name devsecops-blog \
   -v /opt/devsecops-blog/data:/app/instance \
+  -v /opt/devsecops-blog/logs:/app/logs \
   -e FLASK_SECRET_KEY="${FLASK_SECRET_KEY}" \
-  simple-flask-blog:latest
+  itjobforme/devsecops-lab:latest
 
 echo "=== User Data Script Completed Successfully ==="
