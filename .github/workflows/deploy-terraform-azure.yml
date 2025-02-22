@@ -19,11 +19,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Configure OIDC for Terraform
+    - name: Configure OIDC Environment Variables
       run: |
-        export ARM_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
-        export ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}
-        export ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        echo "Setting up OIDC environment variables"
+        echo "ARM_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
+        echo "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
+        echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+        echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
 
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v2
