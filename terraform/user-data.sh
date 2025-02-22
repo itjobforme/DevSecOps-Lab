@@ -6,7 +6,7 @@ exec > >(tee /var/log/user-data.log | logger -t user-data) 2>&1
 
 echo "=== Starting User Data Script ==="
 
-# Update and install required packages
+# Update required packages
 sudo apt update -y
 sudo apt upgrade -y
 sudo apt install -y docker.io python3 python3-pip
