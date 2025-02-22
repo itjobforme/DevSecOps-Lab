@@ -5,7 +5,7 @@ resource "azurerm_public_ip" "ingress_ip" {
   allocation_method   = "Static"
   sku                 = "Standard"
 }
-
+#
 output "ingress_ip" {
   value = azurerm_public_ip.ingress_ip.ip_address
 }
