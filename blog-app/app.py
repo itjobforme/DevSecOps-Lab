@@ -70,11 +70,12 @@ def login():
         user = User.query.filter_by(username=username).first()
 
         if user and check_password_hash(user.password_hash, password):
-            # Verify OTP if the user has one set up
+            app.logger.info(f"User {username} found, verifying OTP...")
             if user.otp_secret:
                 totp = pyotp.TOTP(user.otp_secret)
                 if not totp.verify(otp):
                     flash("Invalid OTP. Please try again.", "danger")
+                    app.logger.warning("Invalid OTP provided.")
                     return redirect(url_for("login"))
 
             login_user(user)
