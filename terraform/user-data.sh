@@ -11,19 +11,7 @@ if [ -f /etc/environment ]; then
     source /etc/environment
 fi
 
-# Fetch secrets from AWS SSM Parameter Store
-echo "=== Fetching Secrets from SSM Parameter Store ==="
-DOCKER_USERNAME=$(aws ssm get-parameter --name "DOCKER_USERNAME" --with-decryption --query "Parameter.Value" --output text)
-DOCKER_PASSWORD=$(aws ssm get-parameter --name "DOCKER_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
-FLASK_SECRET_KEY=$(aws ssm get-parameter --name "FLASK_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
-
-# Validate that all required variables are set
-if [[ -z "$DOCKER_USERNAME" || -z "$DOCKER_PASSWORD" || -z "$FLASK_SECRET_KEY" ]]; then
-    echo "One or more required parameters are missing. Exiting."
-    exit 1
-fi
-
-# Update and install required packages
+# Update and install required packages including AWS CLI
 sudo apt update -y
 sudo apt upgrade -y
 sudo apt install -y docker.io python3 python3-pip awscli
@@ -69,6 +57,13 @@ df -h | grep /opt/devsecops-blog/data
 sudo chown -R ubuntu:ubuntu /opt/devsecops-blog/data
 sudo chmod -R 755 /opt/devsecops-blog/data
 
+echo "=== Fetching Secrets from SSM Parameter Store ==="
+
+# Fetch secrets from SSM Parameter Store
+DOCKER_USERNAME=$(aws ssm get-parameter --name DOCKER_USERNAME --with-decryption --query Parameter.Value --output text)
+DOCKER_PASSWORD=$(aws ssm get-parameter --name DOCKER_PASSWORD --with-decryption --query Parameter.Value --output text)
+FLASK_SECRET_KEY=$(aws ssm get-parameter --name FLASK_SECRET_KEY --with-decryption --query Parameter.Value --output text)
+
 echo "=== Docker login and pulling the new image ==="
 
 # Docker login and pull the new image
@@ -86,7 +81,7 @@ echo "=== Running the new container ==="
 # Run the new container with updated volume and environment variable
 sudo docker run -d -p 80:5000 --restart unless-stopped --name simple-flask-blog \
   -v /opt/devsecops-blog/data:/app/instance \
-  -e FLASK_SECRET_KEY="$FLASK_SECRET_KEY" \
+  -e FLASK_SECRET_KEY="${FLASK_SECRET_KEY}" \
   simple-flask-blog:latest
 
 # Check if the container is running
