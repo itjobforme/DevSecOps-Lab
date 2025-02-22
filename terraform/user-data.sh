@@ -6,24 +6,44 @@ exec > >(tee /var/log/user-data.log | logger -t user-data) 2>&1
 
 echo "=== Starting User Data Script ==="
 
-# Update required packages
+# Load environment variables if available
+if [ -f /etc/environment ]; then
+    source /etc/environment
+fi
+
+# Fetch secrets from AWS SSM Parameter Store
+echo "=== Fetching Secrets from SSM Parameter Store ==="
+DOCKER_USERNAME=$(aws ssm get-parameter --name "DOCKER_USERNAME" --with-decryption --query "Parameter.Value" --output text)
+DOCKER_PASSWORD=$(aws ssm get-parameter --name "DOCKER_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+FLASK_SECRET_KEY=$(aws ssm get-parameter --name "FLASK_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+
+# Validate that all required variables are set
+if [[ -z "$DOCKER_USERNAME" || -z "$DOCKER_PASSWORD" || -z "$FLASK_SECRET_KEY" ]]; then
+    echo "One or more required parameters are missing. Exiting."
+    exit 1
+fi
+
+# Update and install required packages
 sudo apt update -y
 sudo apt upgrade -y
-sudo apt install -y docker.io python3 python3-pip
+sudo apt install -y docker.io python3 python3-pip awscli
 
 # Enable and start Docker
+echo "=== Starting Docker Service ==="
 sudo systemctl enable docker
 sudo systemctl start docker
 sudo usermod -aG docker ubuntu
 newgrp docker
-sleep 10
+sudo systemctl status docker
 
 # Install and start SSM agent
+echo "=== Installing and Starting SSM Agent ==="
 if ! snap list | grep -q amazon-ssm-agent; then
     sudo snap install amazon-ssm-agent --classic
 fi
-sudo systemctl restart snap.amazon-ssm-agent.amazon-ssm-agent.service
-sleep 10
+sudo systemctl enable snap.amazon-ssm-agent.amazon-ssm-agent.service
+sudo systemctl start snap.amazon-ssm-agent.amazon-ssm-agent.service
+sudo systemctl status snap.amazon-ssm-agent.amazon-ssm-agent.service
 
 echo "=== Configuring EBS Volume ==="
 
@@ -41,6 +61,9 @@ sudo mount /dev/xvdf /opt/devsecops-blog/data
 
 # Ensure the volume mounts on reboot
 echo '/dev/xvdf /opt/devsecops-blog/data ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+
+# Verify the volume is mounted correctly
+df -h | grep /opt/devsecops-blog/data
 
 # Set appropriate permissions
 sudo chown -R ubuntu:ubuntu /opt/devsecops-blog/data
@@ -65,5 +88,8 @@ sudo docker run -d -p 80:5000 --restart unless-stopped --name simple-flask-blog 
   -v /opt/devsecops-blog/data:/app/instance \
   -e FLASK_SECRET_KEY="$FLASK_SECRET_KEY" \
   simple-flask-blog:latest
+
+# Check if the container is running
+sudo docker ps
 
 echo "=== User Data Script Completed Successfully ==="
