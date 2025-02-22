@@ -218,7 +218,7 @@ resource "aws_lb_listener" "https_listener" {
 
 resource "aws_lb_target_group" "devsecops_tg" {
   name     = "devsecops-tg"
-  port     = 5000
+  port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.devsecops_vpc.id
 
@@ -238,7 +238,7 @@ resource "aws_lb_target_group" "devsecops_tg" {
 resource "aws_lb_target_group_attachment" "devsecops_tg_attachment" {
   target_group_arn = aws_lb_target_group.devsecops_tg.arn
   target_id        = aws_instance.devsecops_blog.id
-  port             = 5000
+  port             = 80
 }
 
 # Security Group for ALB
@@ -278,8 +278,8 @@ resource "aws_security_group" "devsecops_sg" {
   vpc_id = aws_vpc.devsecops_vpc.id
 
   ingress {
-    from_port   = 5000
-    to_port     = 5000
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     security_groups = [aws_security_group.alb_sg.id] # Allow only from ALB
   }
@@ -307,7 +307,6 @@ resource "aws_security_group" "devsecops_sg" {
 resource "aws_instance" "devsecops_blog" {
   ami                         = "ami-09e67e426f25ce0d7"
   instance_type               = "t2.micro"
-  key_name                    = "devsecops-key-new"
   subnet_id                   = aws_subnet.public_subnet_1.id
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.ec2_ssm_profile.name
@@ -324,27 +323,3 @@ resource "aws_instance" "devsecops_blog" {
     Name = "DevSecOps-Blog"
   }
 }
-
-
-### Create an EBS Volume in the Same Availability Zone as the EC2 Instance
-resource "aws_ebs_volume" "devsecops_blog_data" {
-  availability_zone = "us-east-1a" # Make sure this matches your EC2 instance AZ
-  size              = 10 # Size in GB
-  tags = {
-    Name = "DevSecOps-Blog-Data"
-  }
-}
-
-### Attach the EBS Volume to the EC2 Instance
-resource "aws_volume_attachment" "devsecops_blog_data_attachment" {
-  device_name = "/dev/sdf" # Linux will mount this as /dev/xvdf
-  volume_id   = aws_ebs_volume.devsecops_blog_data.id
-  instance_id = aws_instance.devsecops_blog.id
-  force_detach = true
-
-  # Ensure the EBS volume is attached only after the instance is created
-  depends_on = [
-    aws_instance.devsecops_blog
-  ]
-}
-
