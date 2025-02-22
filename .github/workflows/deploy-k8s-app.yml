@@ -1,5 +1,5 @@
 name: Deploy k8s-app to Azure AKS
-#
+
 on:
   push:
     branches:
