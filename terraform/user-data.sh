@@ -81,7 +81,7 @@ sudo docker rm simple-flask-blog || true
 
 echo "=== Running the new container ==="
 
-# Run the new container with updated volume and environment variable
+# Run the new container 
 sudo docker run -d -p 80:5000 --restart unless-stopped --name simple-flask-blog \
   -v /opt/devsecops-blog/data:/app/instance \
   -e FLASK_SECRET_KEY="${FLASK_SECRET_KEY}" \
