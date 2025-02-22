@@ -238,7 +238,6 @@ resource "aws_lb_target_group_attachment" "devsecops_tg_attachment" {
   port             = 80
 }
 
-# Security Group for ALB
 resource "aws_security_group" "alb_sg" {
   name        = "alb-security-group"
   description = "Security group for ALB"
