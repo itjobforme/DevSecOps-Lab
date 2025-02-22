@@ -1,7 +1,5 @@
-<<<<<<< HEAD
+
 #!/bin/bash
-=======
->>>>>>> 202bd45 (Fixed repository structure and added Simple Flask Blog)
 set -euxo pipefail
 
 # Redirect all output to a log file
