@@ -71,7 +71,7 @@ echo "=== Docker login and pulling the new image ==="
 
 # Docker login and pull the new image
 echo "$DOCKER_PASSWORD" | sudo docker login -u "$DOCKER_USERNAME" --password-stdin
-sudo docker pull simple-flask-blog:latest
+sudo docker pull itjobforme/simple-flask-blog:latest
 
 echo "=== Stopping and removing any existing container ==="
 
@@ -85,7 +85,7 @@ echo "=== Running the new container ==="
 sudo docker run -d -p 80:5000 --restart unless-stopped --name simple-flask-blog \
   -v /opt/devsecops-blog/data:/app/instance \
   -e FLASK_SECRET_KEY="${FLASK_SECRET_KEY}" \
-  simple-flask-blog:latest
+  itjobforme/simple-flask-blog:latest
 
 # Check if the container is running
 sudo docker ps
