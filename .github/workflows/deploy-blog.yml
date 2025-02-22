@@ -28,13 +28,13 @@ jobs:
           audience: sts.amazonaws.com
 
       - name: Build Docker Image
-        run: docker build -t yourdockerhubusername/simple-flask-blog:latest ./flask-blog
+        run: docker build -t itjobforme/simple-flask-blog:latest ./flask-blog
 
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Push Image to Docker Hub
-        run: docker push yourdockerhubusername/simple-flask-blog:latest
+        run: docker push itjobforme/simple-flask-blog:latest
 
       - name: Deploy via AWS SSM
         run: |
@@ -43,16 +43,16 @@ jobs:
             --targets '[{"Key":"tag:Name","Values":["DevSecOps-Blog"]}]' \
             --parameters 'commands=[
               "sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}",
-              "sudo docker pull yourdockerhubusername/simple-flask-blog:latest",
+              "sudo docker pull itjobforme/simple-flask-blog:latest",
               "sudo docker stop simple-flask-blog || true",
               "sudo docker rm simple-flask-blog || true",
               "sudo mkdir -p /var/devsecops-blog/db",
               "sudo chown 1000:1000 /var/devsecops-blog/db",
               "echo -n ${{ secrets.FLASK_SECRET_KEY }} | sudo tee /var/devsecops-blog/db/FLASK_SECRET_KEY",
               "sudo chmod 600 /var/devsecops-blog/db/FLASK_SECRET_KEY",
-              "sudo docker run -d -p 80:5000 --name simple-flask-blog \
+              "sudo docker run -d -p 5000:5000 --name simple-flask-blog \
                   -e FLASK_SECRET_KEY=${{ secrets.FLASK_SECRET_KEY }} \
                   -v /var/devsecops-blog/db:/app/instance \
-                  yourdockerhubusername/simple-flask-blog:latest"
+                  itjobforme/simple-flask-blog:latest"
             ]' \
             --region us-east-1
