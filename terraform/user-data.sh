@@ -73,6 +73,7 @@ sudo docker stop devsecops-blog || true
 sudo docker rm devsecops-blog || true
 sudo docker run -d -p 80:80 --restart unless-stopped --name devsecops-blog \
   -v /opt/devsecops-blog/data:/app/instance \
+  -v /opt/devsecops-blog/logs:/app/logs \
   -e FLASK_SECRET_KEY="${FLASK_SECRET_KEY}" \
   itjobforme/devsecops-lab:latest
 
