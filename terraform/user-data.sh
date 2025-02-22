@@ -59,10 +59,13 @@ sudo chmod -R 755 /opt/devsecops-blog/data
 
 echo "=== Fetching Secrets from SSM Parameter Store ==="
 
+# Set the AWS Region
+export AWS_REGION="us-east-1"
+
 # Fetch secrets from SSM Parameter Store
-DOCKER_USERNAME=$(aws ssm get-parameter --name DOCKER_USERNAME --with-decryption --query Parameter.Value --output text)
-DOCKER_PASSWORD=$(aws ssm get-parameter --name DOCKER_PASSWORD --with-decryption --query Parameter.Value --output text)
-FLASK_SECRET_KEY=$(aws ssm get-parameter --name FLASK_SECRET_KEY --with-decryption --query Parameter.Value --output text)
+DOCKER_USERNAME=$(aws ssm get-parameter --name DOCKER_USERNAME --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
+DOCKER_PASSWORD=$(aws ssm get-parameter --name DOCKER_PASSWORD --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
+FLASK_SECRET_KEY=$(aws ssm get-parameter --name FLASK_SECRET_KEY --with-decryption --query Parameter.Value --output text --region "$AWS_REGION")
 
 echo "=== Docker login and pulling the new image ==="
 
