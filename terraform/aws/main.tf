@@ -19,8 +19,8 @@ provider "aws" {
   region = "us-east-1"
 }
 
-resource "aws_acm_certificate" "blog_cert" {
-  domain_name       = "blog.securingthecloud.org"
+resource "aws_acm_certificate" "docker_cert" {
+  domain_name       = "docker.securingthecloud.org"
   validation_method = "DNS"
 
   lifecycle {
@@ -34,7 +34,7 @@ resource "aws_acm_certificate" "blog_cert" {
 
 resource "aws_route53_record" "cert_validation" {
   for_each = {
-    for dvo in aws_acm_certificate.blog_cert.domain_validation_options : dvo.domain_name => {
+    for dvo in aws_acm_certificate.docker_cert.domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
@@ -48,8 +48,8 @@ resource "aws_route53_record" "cert_validation" {
   ttl     = 60
 }
 
-resource "aws_acm_certificate_validation" "blog_cert_validation" {
-  certificate_arn         = aws_acm_certificate.blog_cert.arn
+resource "aws_acm_certificate_validation" "docker_cert_validation" {
+  certificate_arn         = aws_acm_certificate.docker_cert.arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
 
@@ -63,7 +63,7 @@ resource "aws_lb" "devsecops_alb" {
 
   enable_deletion_protection = false
 
-  depends_on = [aws_acm_certificate_validation.blog_cert_validation]
+  depends_on = [aws_acm_certificate_validation.docker_cert_validation]
 
 
   tags = {
@@ -72,9 +72,9 @@ resource "aws_lb" "devsecops_alb" {
 }
 
 
-resource "aws_route53_record" "blog_dns" {
+resource "aws_route53_record" "docker_dns" {
   zone_id = "Z01497793G9Q2YQQ3ARC8"
-  name    = "blog.securingthecloud.org"
+  name    = "docker.securingthecloud.org"
   type    = "A"
 
   alias {
@@ -205,7 +205,7 @@ resource "aws_lb_listener" "https_listener" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = aws_acm_certificate.blog_cert.arn
+  certificate_arn   = aws_acm_certificate.docker_cert.arn
 
   default_action {
     type             = "forward"
@@ -234,7 +234,7 @@ resource "aws_lb_target_group" "devsecops_tg" {
 
 resource "aws_lb_target_group_attachment" "devsecops_tg_attachment" {
   target_group_arn = aws_lb_target_group.devsecops_tg.arn
-  target_id        = aws_instance.devsecops_blog.id
+  target_id        = aws_instance.devsecops_docker.id
   port             = 80
 }
 
@@ -299,7 +299,7 @@ resource "aws_security_group" "devsecops_sg" {
   }
 }
 
-resource "aws_instance" "devsecops_blog" {
+resource "aws_instance" "devsecops_docker" {
   ami                         = "ami-09e67e426f25ce0d7"
   instance_type               = "t2.micro"
   subnet_id                   = aws_subnet.public_subnet_1.id
