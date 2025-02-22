@@ -33,30 +33,6 @@ sudo systemctl enable snap.amazon-ssm-agent.amazon-ssm-agent.service
 sudo systemctl start snap.amazon-ssm-agent.amazon-ssm-agent.service
 sudo systemctl status snap.amazon-ssm-agent.amazon-ssm-agent.service
 
-echo "=== Configuring EBS Volume ==="
-
-# Format the EBS volume only if not already formatted
-if ! sudo file -s /dev/xvdf | grep -q 'ext4'; then
-    echo "Formatting EBS volume..."
-    sudo mkfs.ext4 /dev/xvdf
-fi
-
-# Create the mount point directory
-sudo mkdir -p /opt/devsecops-blog/data
-
-# Mount the volume
-sudo mount /dev/xvdf /opt/devsecops-blog/data
-
-# Ensure the volume mounts on reboot
-echo '/dev/xvdf /opt/devsecops-blog/data ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
-
-# Verify the volume is mounted correctly
-df -h | grep /opt/devsecops-blog/data
-
-# Set appropriate permissions
-sudo chown -R ubuntu:ubuntu /opt/devsecops-blog/data
-sudo chmod -R 755 /opt/devsecops-blog/data
-
 echo "=== Fetching Secrets from SSM Parameter Store ==="
 
 # Set the AWS Region
@@ -83,7 +59,6 @@ echo "=== Running the new container ==="
 
 # Run the new container 
 sudo docker run -d -p 80:80 --restart unless-stopped --name devsecops-lab \
-  -v /opt/devsecops-blog/data:/app/instance \
   -e FLASK_SECRET_KEY="${FLASK_SECRET_KEY}" \
   itjobforme/devsecops-lab:latest
 
