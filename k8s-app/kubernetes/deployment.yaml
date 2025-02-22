@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devsecops-k8s-app
+  labels:
+    app: devsecops-k8s-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devsecops-k8s-app
+  template:
+    metadata:
+      labels:
+        app: devsecops-k8s-app
+    spec:
+      containers:
+      - name: devsecops

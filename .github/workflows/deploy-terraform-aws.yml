@@ -1,0 +1,37 @@
+name: Deploy AWS Infrastructure with Terraform
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/aws/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        audience: sts.amazonaws.com
+
+    - name: Initialize Terraform
+      run: |
+        cd terraform/aws
+        terraform init
+
+    - name: Apply Terraform Configuration
+      run: |
+        cd terraform/aws
+        terraform apply -auto-approve
