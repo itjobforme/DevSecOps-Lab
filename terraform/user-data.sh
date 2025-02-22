@@ -82,10 +82,11 @@ sudo docker rm simple-flask-blog || true
 echo "=== Running the new container ==="
 
 # Run the new container 
-sudo docker run -d -p 80:5000 --restart unless-stopped --name simple-flask-blog \
+sudo docker run -d -p 5000:5000 --restart unless-stopped --name simple-flask-blog \
   -v /opt/devsecops-blog/data:/app/instance \
   -e FLASK_SECRET_KEY="${FLASK_SECRET_KEY}" \
   itjobforme/simple-flask-blog:latest
+
 
 # Check if the container is running
 sudo docker ps
