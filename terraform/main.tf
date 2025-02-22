@@ -223,7 +223,6 @@ resource "aws_lb_listener" "http_redirect" {
   }
 }
 
-# HTTPS Listener
 resource "aws_lb_listener" "https_listener" {
   load_balancer_arn = aws_lb.devsecops_alb.arn
   port              = 443
@@ -234,6 +233,27 @@ resource "aws_lb_listener" "https_listener" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.devsecops_tg.arn
+  }
+}
+
+resource "aws_lb_target_group" "devsecops_tg" {
+  name     = "devsecops-tg"
+  port     = 5000
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.devsecops_vpc.id
+
+  health_check {
+    path                = "/"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+
+  depends_on = [aws_lb_listener.https_listener]
+
+  tags = {
+    Name = "DevSecOps-TG"
   }
 }
 
