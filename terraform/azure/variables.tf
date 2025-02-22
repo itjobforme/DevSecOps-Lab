@@ -1,22 +1,16 @@
-variable "resource_group_name" {
-  description = "The name of the resource group"
-  type        = string
+variable "tenant_id" {
+  description = "Azure Tenant ID"
 }
 
-variable "location" {
-  description = "The location where resources will be deployed"
-  type        = string
-  default     = "East US"
+variable "client_id" {
+  description = "Azure Client ID"
 }
 
-variable "aks_cluster_name" {
-  description = "Name of the AKS cluster"
-  type        = string
-  default     = "devsecops-aks"
+variable "client_secret" {
+  description = "Azure Client Secret"
+  sensitive   = true
 }
 
-variable "node_count" {
-  description = "Number of nodes in the AKS cluster"
-  type        = number
-  default     = 1
+variable "subscription_id" {
+  description = "Azure Subscription ID"
 }
