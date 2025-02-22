@@ -1,51 +1,15 @@
 provider "azurerm" {
   features {}
+
+  # Service Principal Authentication
+  tenant_id       = var.tenant_id
+  client_id       = var.client_id
+  client_secret   = var.client_secret
+  subscription_id = var.subscription_id
 }
 
 # Resource Group for the AKS Cluster
 resource "azurerm_resource_group" "devsecops_rg" {
   name     = "devsecops-lab-rg"
   location = "East US"
-}
-
-# AKS Cluster Definition (No Module)
-resource "azurerm_kubernetes_cluster" "aks" {
-  name                = "devsecops-aks"
-  location            = azurerm_resource_group.devsecops_rg.location
-  resource_group_name = azurerm_resource_group.devsecops_rg.name
-  dns_prefix          = "devsecops-k8s"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  network_profile {
-    network_plugin = "azure"
-    network_policy = "azure"
-  }
-
-  lifecycle {
-    ignore_changes = [
-      default_node_pool[0].node_count,
-    ]
-  }
-}
-
-# Public IP for Ingress
-resource "azurerm_public_ip" "ingress_ip" {
-  name                = "devsecops-ingress-ip"
-  resource_group_name = azurerm_resource_group.devsecops_rg.name
-  location            = azurerm_resource_group.devsecops_rg.location
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-output "ingress_ip" {
-  value = azurerm_public_ip.ingress_ip.ip_address
 }
