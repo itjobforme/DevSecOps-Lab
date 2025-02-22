@@ -1,12 +1,12 @@
 resource "azurerm_kubernetes_cluster" "aks" {
-  name                = var.aks_cluster_name
-  location            = var.location
-  resource_group_name = var.resource_group_name
+  name                = "devsecops-aks"
+  location            = azurerm_resource_group.devsecops_rg.location
+  resource_group_name = azurerm_resource_group.devsecops_rg.name
   dns_prefix          = "devsecops-k8s"
 
   default_node_pool {
     name       = "default"
-    node_count = var.node_count
+    node_count = 1
     vm_size    = "Standard_DS2_v2"
   }
 
