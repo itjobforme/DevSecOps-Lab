@@ -309,7 +309,7 @@ resource "aws_security_group" "devsecops_sg" {
   }
 }
 
-### Deploy an EC2 Instance in the Public Subnet
+
 # Updated User Data Script in main.tf
 resource "aws_instance" "devsecops_blog" {
   ami                         = "ami-09e67e426f25ce0d7" # Ubuntu AMI
