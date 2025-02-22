@@ -26,7 +26,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 }
 
-# Add Role Assignment for Service Principal
 resource "azurerm_role_assignment" "aks_sp_role" {
   principal_id   = azurerm_kubernetes_cluster.aks.identity[0].principal_id
   role_definition_name = "Contributor"
