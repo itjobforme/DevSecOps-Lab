@@ -187,26 +187,6 @@ resource "aws_route_table_association" "public_assoc_2" {
 }
 
 
-# Load Balancer Target Group
-resource "aws_lb_target_group" "devsecops_tg" {
-  name     = "devsecops-tg"
-  port     = 5000
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.devsecops_vpc.id
-
-  health_check {
-    path                = "/"
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-  }
-
-  tags = {
-    Name = "DevSecOps-TG"
-  }
-}
-
 # Load Balancer Listener for HTTP to HTTPS Redirect
 resource "aws_lb_listener" "http_redirect" {
   load_balancer_arn = aws_lb.devsecops_alb.arn
