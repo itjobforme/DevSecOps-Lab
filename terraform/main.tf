@@ -187,9 +187,10 @@ resource "aws_route_table_association" "public_assoc_2" {
 }
 
 
+# Load Balancer Target Group
 resource "aws_lb_target_group" "devsecops_tg" {
   name     = "devsecops-tg"
-  port     = 80
+  port     = 5000
   protocol = "HTTP"
   vpc_id   = aws_vpc.devsecops_vpc.id
 
@@ -206,6 +207,7 @@ resource "aws_lb_target_group" "devsecops_tg" {
   }
 }
 
+# Load Balancer Listener for HTTP to HTTPS Redirect
 resource "aws_lb_listener" "http_redirect" {
   load_balancer_arn = aws_lb.devsecops_alb.arn
   port              = 80
@@ -221,6 +223,7 @@ resource "aws_lb_listener" "http_redirect" {
   }
 }
 
+# HTTPS Listener
 resource "aws_lb_listener" "https_listener" {
   load_balancer_arn = aws_lb.devsecops_alb.arn
   port              = 443
@@ -234,17 +237,14 @@ resource "aws_lb_listener" "https_listener" {
   }
 }
 
-
-
-
+# Target Group Attachment
 resource "aws_lb_target_group_attachment" "devsecops_tg_attachment" {
   target_group_arn = aws_lb_target_group.devsecops_tg.arn
   target_id        = aws_instance.devsecops_blog.id
-  port             = 80
+  port             = 5000
 }
 
-
-### Security Group for ALB
+# Security Group for ALB
 resource "aws_security_group" "alb_sg" {
   name        = "alb-security-group"
   description = "Security group for ALB"
@@ -256,6 +256,7 @@ resource "aws_security_group" "alb_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
   ingress {
     from_port   = 80
     to_port     = 80
@@ -275,20 +276,17 @@ resource "aws_security_group" "alb_sg" {
   }
 }
 
-
-### Create a Security Group for EC2
+# Security Group for EC2 Instance
 resource "aws_security_group" "devsecops_sg" {
   vpc_id = aws_vpc.devsecops_vpc.id
 
-  # Allow traffic from ALB only
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 5000
+    to_port     = 5000
     protocol    = "tcp"
     security_groups = [aws_security_group.alb_sg.id] # Allow only from ALB
   }
 
-  # Allow SSM Agent Traffic
   ingress {
     from_port   = 443
     to_port     = 443
@@ -296,7 +294,6 @@ resource "aws_security_group" "devsecops_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Allow all outbound traffic
   egress {
     from_port   = 0
     to_port     = 0
@@ -309,32 +306,27 @@ resource "aws_security_group" "devsecops_sg" {
   }
 }
 
-
-# Updated User Data Script in main.tf
+# EC2 Instance Configuration
 resource "aws_instance" "devsecops_blog" {
-  ami                         = "ami-09e67e426f25ce0d7" # Ubuntu AMI
+  ami                         = "ami-09e67e426f25ce0d7"
   instance_type               = "t2.micro"
   key_name                    = "devsecops-key-new"
   subnet_id                   = aws_subnet.public_subnet_1.id
-
-  vpc_security_group_ids      = [aws_security_group.devsecops_sg.id]
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.ec2_ssm_profile.name
+  vpc_security_group_ids      = [aws_security_group.devsecops_sg.id]
 
   metadata_options {
-    http_tokens   = "required" # Enforce IMDSv2
+    http_tokens   = "required"
     http_endpoint = "enabled"
   }
 
-  # Updated User Data Script
   user_data = file("user-data.sh")
 
   tags = {
     Name = "DevSecOps-Blog"
   }
 }
-<<<<<<< HEAD
-
 
 
 ### Create an EBS Volume in the Same Availability Zone as the EC2 Instance
@@ -358,5 +350,4 @@ resource "aws_volume_attachment" "devsecops_blog_data_attachment" {
     aws_instance.devsecops_blog
   ]
 }
-=======
->>>>>>> 202bd45 (Fixed repository structure and added Simple Flask Blog)
+
