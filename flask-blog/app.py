@@ -2,9 +2,10 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import os
 from dotenv import load_dotenv
 
+load_dotenv()  # Load environment variables from .env file
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'supersecretkey'  # Replace with os.getenv('SECRET_KEY') if using .env
-load_dotenv()
+app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY')  # Load secret key from GitHub secrets or .env file
 
 POSTS = []
 
@@ -34,7 +35,7 @@ def new_post():
 def login():
     if request.method == "POST":
         password = request.form.get("password")
-        if password == os.getenv('ADMIN_PASSWORD'):
+        if password == os.getenv('ADMIN_PASSWORD'):  # Load admin password from .env file or manually input
             session['logged_in'] = True
             flash("Logged in successfully!", "success")
             return redirect(url_for("home"))
