@@ -123,6 +123,15 @@ resource "aws_instance" "k8s_app_ec2" {
     done
     echo "K3s API server is ready!"
 
+    # Create ECR Docker Registry Secret
+    aws ecr get-login-password --region us-east-1 | sudo k3s kubectl create secret docker-registry ecr-secret \
+      --docker-server=580034872400.dkr.ecr.us-east-1.amazonaws.com \
+      --docker-username=AWS \
+      --docker-password="$(aws ecr get-login-password --region us-east-1)" \
+      --docker-email=devsecops@securingthecloud.org
+
+    echo "ECR Secret created successfully."
+
     # Check Node Status
     sudo k3s kubectl get nodes
     sudo k3s kubectl get pods -A
