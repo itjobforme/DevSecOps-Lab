@@ -37,20 +37,29 @@ jobs:
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/devsecops-key-new.pem
         chmod 600 ~/.ssh/devsecops-key-new.pem
         
+    - name: Set Up SSH Key and Known Hosts
+      run: |
+        mkdir -p ~/.ssh
+        
+        # Add the private key from GitHub Secrets
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/devsecops-key-new.pem
+        chmod 600 ~/.ssh/devsecops-key-new.pem
+        
         # Get the public IP of the EC2 instance by tag name
         INSTANCE_IP=$(aws ec2 describe-instances \
           --filters "Name=tag:Name,Values=k8s-app-ec2" \
           --query "Reservations[*].Instances[*].PublicIpAddress" \
           --output text)
-         ssh-keyscan -H "$INSTANCE_IP" >> ~/.ssh/known_hosts 
-    
-           
-    - name: Add SSH Key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.DEVSECOPS_SSH_KEY }}" > ~/.ssh/devsecops-key-new.pem
-        chmod 600 ~/.ssh/devsecops-key-new.pem
-        ssh-keyscan -H k8s-app-ec2 >> ~/.ssh/known_hosts
+        
+        # Check if INSTANCE_IP is not empty
+        if [ -z "$INSTANCE_IP" ]; then
+          echo "Error: Could not retrieve the public IP of the EC2 instance."
+          exit 1
+        fi
+        
+        # Add the instance to known hosts
+        ssh-keyscan -H "$INSTANCE_IP" >> ~/.ssh/known_hosts
+
 
     - name: Generate Kubeconfig on EC2
       run: |
