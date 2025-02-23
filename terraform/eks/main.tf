@@ -5,7 +5,6 @@ provider "aws" {
 
 data "aws_availability_zones" "available" {}
 
-# VPC Configuration
 resource "aws_vpc" "devsecops_eks_vpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
