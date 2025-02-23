@@ -1,19 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: devsecops-k8s-app
+  name: k8s-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: devsecops-k8s-app
+      app: k8s-app
   template:
     metadata:
       labels:
-        app: devsecops-k8s-app
+        app: k8s-app
     spec:
       containers:
-      - name: devsecops-k8s-app
+      - name: k8s-app
         image: 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
