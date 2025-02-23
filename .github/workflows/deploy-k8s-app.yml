@@ -1,4 +1,4 @@
-name: Deploy k8s-app to Azure AKS
+name: Deploy K8s App to AKS
 
 on:
   push:
@@ -8,49 +8,42 @@ on:
       - 'k8s-app/**'
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-    
+
     permissions:
       id-token: write
       contents: read
 
     steps:
-    - name: Checkout code
+    - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Log in to Azure
+    - name: Azure Login with OIDC
       uses: azure/login@v1
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Build Docker image
-      run: |
-        cd k8s-app
-        docker build -t devsecopsregistry72023.azurecr.io/k8s-app:latest .
-
-    - name: Log in to Azure Container Registry
-      run: |
-        echo "${{ secrets.ACR_PASSWORD }}" | docker login devsecopsregistry72023.azurecr.io -u "${{ secrets.ACR_USERNAME }}" --password-stdin
-
-    - name: Push Docker image to ACR
-      run: |
-        docker push devsecopsregistry72023.azurecr.io/k8s-app:latest
-
-    - name: Set up Kubectl
+    - name: Set up kubectl
       run: |
         az aks get-credentials --resource-group devsecops-lab-rg --name devsecops-aks
 
-    - name: Apply Kubernetes Manifests
+    - name: Build and Push Docker Image
+      run: |
+        docker build -t devsecopsregistry72023.azurecr.io/devsecops-k8s-app:latest k8s-app
+        echo "${{ secrets.ACR_PASSWORD }}" | docker login devsecopsregistry72023.azurecr.io -u "${{ secrets.ACR_USERNAME }}" --password-stdin
+        docker push devsecopsregistry72023.azurecr.io/devsecops-k8s-app:latest
+
+    - name: Deploy to Kubernetes
       run: |
         kubectl apply -f k8s-app/kubernetes/deployment.yaml
         kubectl apply -f k8s-app/kubernetes/service.yaml
         kubectl apply -f k8s-app/kubernetes/ingress.yaml
 
-    - name: Verify Deployment
+    - name: Verify Kubernetes Deployment
       run: |
-        kubectl get pods
-        kubectl get services
-        kubectl get ingres
+        kubectl get pods -A
+        kubectl get services -A
+        kubectl get ingress -A
