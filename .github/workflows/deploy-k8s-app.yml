@@ -1,4 +1,4 @@
-name: Deploy K8s App to EKS
+name: Deploy K8s App to EC2 Kubernetes
 
 on:
   push:
@@ -25,10 +25,6 @@ jobs:
         role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
         aws-region: us-east-1
 
-    - name: Set up kubectl for EKS
-      run: |
-        aws eks update-kubeconfig --name devsecops-eks-cluster --region us-east-1
-
     - name: Build and Push Docker Image
       run: |
         set -e
@@ -37,21 +33,32 @@ jobs:
         docker tag devsecops-k8s-app:latest 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app:latest
         docker push 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app:latest
 
-    - name: Deploy to Kubernetes
+    - name: Update Kubernetes Deployment via SSM
       run: |
-        set -e
-        kubectl apply -f k8s-app/kubernetes/deployment.yml
-        kubectl apply -f k8s-app/kubernetes/service.yml
-        kubectl apply -f k8s-app/kubernetes/ingress.yml
+        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=k8s-app-ec2" --query "Reservations[*].Instances[*].InstanceId" --output text)
+        aws ssm send-command \
+          --instance-ids "$INSTANCE_ID" \
+          --document-name "AWS-RunShellScript" \
+          --parameters 'commands=["sudo k3s kubectl rollout restart deployment k8s-app"]' \
+          --comment "Restart Kubernetes deployment to use latest Docker image" \
+          --region us-east-1
 
     - name: Verify Kubernetes Deployment
       run: |
-        kubectl get pods -A
-        kubectl get services -A
-        kubectl get ingress -A
+        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=k8s-app-ec2" --query "Reservations[*].Instances[*].InstanceId" --output text)
+        aws ssm send-command \
+          --instance-ids "$INSTANCE_ID" \
+          --document-name "AWS-RunShellScript" \
+          --parameters 'commands=["sudo k3s kubectl get pods -A","sudo k3s kubectl get services -A"]' \
+          --comment "Check the status of Kubernetes pods and services" \
+          --region us-east-1
 
     - name: Describe Kubernetes Resources
       run: |
-        kubectl describe deployment devsecops-k8s-app
-        kubectl describe service devsecops-k8s-service
-        kubectl describe ingress devsecops-k8s-ingress
+        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=k8s-app-ec2" --query "Reservations[*].Instances[*].InstanceId" --output text)
+        aws ssm send-command \
+          --instance-ids "$INSTANCE_ID" \
+          --document-name "AWS-RunShellScript" \
+          --parameters 'commands=["sudo k3s kubectl describe deployment k8s-app","sudo k3s kubectl describe service k8s-app-service"]' \
+          --comment "Describe Kubernetes deployment and service" \
+          --region us-east-1
