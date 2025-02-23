@@ -63,7 +63,7 @@ resource "aws_iam_instance_profile" "ec2_ssm_profile" {
 
 resource "aws_instance" "k8s_app_ec2" {
   ami           = "ami-09e67e426f25ce0d7" # Ubuntu Server 20.04 LTS
-  instance_type = "t2.micro"
+  instance_type = "t3.small"
   iam_instance_profile = aws_iam_instance_profile.ec2_ssm_profile.name
   key_name = "devsecops-key-new"
 
@@ -107,52 +107,29 @@ resource "aws_instance" "k8s_app_ec2" {
 
     # Install k3s (Lightweight Kubernetes)
     curl -sfL https://get.k3s.io | sh -
-    sleep 10
+    sleep 30
 
-    # Create Kubernetes deployment
-    cat <<EOL > /home/ubuntu/k8s-app-deployment.yml
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: k8s-app
-    spec:
-      replicas: 1
-      selector:
-        matchLabels:
-          app: k8s-app
-      template:
-        metadata:
-          labels:
-            app: k8s-app
-        spec:
-          containers:
-          - name: k8s-app
-            image: 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app
-            imagePullPolicy: Always
-            ports:
-            - containerPort: 80
-    EOL
+    # Wait for K3s API server to be ready
+    echo "Waiting for K3s API server to be ready..."
+    RETRIES=30
+    until sudo k3s kubectl get nodes &>/dev/null; do
+      echo "K3s server not yet ready, waiting..."
+      sleep 10
+      RETRIES=$((RETRIES-1))
+      if [ $RETRIES -le 0 ]; then
+        echo "K3s server failed to start, exiting."
+        exit 1
+      fi
+    done
+    echo "K3s API server is ready!"
 
-    # Create Kubernetes service
-    cat <<EOL > /home/ubuntu/k8s-app-service.yml
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: k8s-app-service
-    spec:
-      type: NodePort
-      selector:
-        app: k8s-app
-      ports:
-      - protocol: TCP
-        port: 80
-        targetPort: 80
-        nodePort: 30000
-    EOL
+    # Check Node Status
+    sudo k3s kubectl get nodes
+    sudo k3s kubectl get pods -A
 
     # Apply Kubernetes configurations
-    sudo k3s kubectl apply -f /home/ubuntu/k8s-app-deployment.yml
-    sudo k3s kubectl apply -f /home/ubuntu/k8s-app-service.yml
+    sudo k3s kubectl apply -f /home/ubuntu/k8s-app-deployment.yml --validate=false
+    sudo k3s kubectl apply -f /home/ubuntu/k8s-app-service.yml --validate=false
     sleep 5
 
     echo "User data script completed."
