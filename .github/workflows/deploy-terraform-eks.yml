@@ -47,11 +47,28 @@ jobs:
 
     - name: Deploy Kubernetes Service and Ingress
       run: |
+        kubectl apply -f k8s-app/kubernetes/deployment.yml
         kubectl apply -f k8s-app/kubernetes/service.yml
-        kubectl apply -f k8s-app/kubernetes/ingress.yaml
+        kubectl apply -f k8s-app/kubernetes/ingress.yml
+        
 
     - name: Check Kubernetes Service, Ingress, and Secret
       run: |
         kubectl get services -A
         kubectl get ingress -A
         kubectl get secrets -A
+
+    - name: Check Kubernetes Deployment, Service, and Ingress
+      run: |
+        kubectl get deployments -A
+        kubectl get pods -A
+        kubectl get services -A
+        kubectl get ingress -A
+        kubectl get secrets -A    
+
+
+    - name: Describe Kubernetes Resources
+      run: |
+        kubectl describe deployment devsecops-k8s-app
+        kubectl describe service devsecops-k8s-service
+        kubectl describe ingress devsecops-k8s-ingress     
