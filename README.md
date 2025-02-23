@@ -3,7 +3,7 @@
 
 This hands-on lab is designed to build practical **DevSecOps** skills by implementing **CI/CD security automation, infrastructure as code, container security, and cloud security monitoring**.  
 
-As part of this project, we have built and deployed a **real-world application**—the live blog at [Securing The Cloud](https://blog.securingthecloud.org). The blog itself is running on **software implemented in this lab**, showcasing DevSecOps best practices in action.  
+As part of this project, we have built and deployed a **real-world application**—the live blog at [Securing The Cloud](https://docker.securingthecloud.org). The blog itself is running on **software implemented in this lab**, showcasing DevSecOps best practices in action.  
 
 ---
 
