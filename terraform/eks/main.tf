@@ -78,7 +78,6 @@ resource "aws_security_group" "eks_node_sg" {
   }
 }
 
-# ECR Repository
 resource "aws_ecr_repository" "devsecops_k8s_app" {
   name = "devsecops-k8s-app"
 
