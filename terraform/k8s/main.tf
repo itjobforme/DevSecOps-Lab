@@ -31,6 +31,31 @@ resource "aws_iam_policy_attachment" "ssm_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+resource "aws_iam_policy" "ecr_policy" {
+  name   = "DevSecOpsEC2ECRPolicy-k8s-app"
+  path   = "/"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecr_policy_attachment" {
+  role       = aws_iam_role.ec2_ssm_role.name
+  policy_arn = aws_iam_policy.ecr_policy.arn
+}
+
 resource "aws_iam_instance_profile" "ec2_ssm_profile" {
   name = "DevSecOpsEC2SSMProfile-k8s-app"
   role = aws_iam_role.ec2_ssm_role.name
@@ -40,7 +65,7 @@ resource "aws_instance" "k8s_app_ec2" {
   ami           = "ami-09e67e426f25ce0d7" # Ubuntu Server 20.04 LTS
   instance_type = "t2.micro"
   iam_instance_profile = aws_iam_instance_profile.ec2_ssm_profile.name
-  key_name = "devsecops-key-new"
+  key_name = "devsecops-key-new" # Updated to use the new key pair
 
   security_groups = ["k8s-app-sg"]
 
