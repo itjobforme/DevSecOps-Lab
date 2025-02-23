@@ -44,77 +44,84 @@ resource "aws_instance" "k8s_app_ec2" {
   security_groups = ["k8s-app-sg"]
 
   user_data = <<-EOF
-    #!/bin/bash
-    # Ensure no other apt processes are running
-    while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-       echo "Waiting for other apt processes to finish..."
-       sleep 5
-    done
+  #!/bin/bash
+#cloud-config
+ssh_pwauth: false
+disable_root: true
+ssh_deletekeys: true
+ssh_authorized_keys: []
 
-    sudo apt-get update -y
-    sudo apt-get install -y docker.io unzip
+# Ensure no other apt processes are running
+while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+   echo "Waiting for other apt processes to finish..."
+   sleep 5
+done
 
-    # Start Docker and add the ubuntu user to the docker group
-    sudo systemctl enable docker
-    sudo systemctl start docker
-    sudo usermod -aG docker ubuntu
+sudo apt-get update -y
+sudo apt-get install -y docker.io unzip
 
-    # Install AWS CLI
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    unzip awscliv2.zip
-    sudo ./aws/install
+# Start Docker and add the ubuntu user to the docker group
+sudo systemctl enable docker
+sudo systemctl start docker
+sudo usermod -aG docker ubuntu
 
-    # Login to ECR
-    aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 580034872400.dkr.ecr.us-east-1.amazonaws.com
+# Install AWS CLI
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
 
-    # Install k3s (Lightweight Kubernetes)
-    curl -sfL https://get.k3s.io | sh -
+# Login to ECR
+aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 580034872400.dkr.ecr.us-east-1.amazonaws.com
 
-    # Create Kubernetes deployment
-    cat <<EOL > /home/ubuntu/k8s-app-deployment.yaml
-    apiVersion: apps/v1
-    kind: Deployment
+# Install k3s (Lightweight Kubernetes)
+curl -sfL https://get.k3s.io | sh -
+
+# Create Kubernetes deployment
+cat <<EOL > /home/ubuntu/k8s-app-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-app
+  template:
     metadata:
-      name: k8s-app
-    spec:
-      replicas: 1
-      selector:
-        matchLabels:
-          app: k8s-app
-      template:
-        metadata:
-          labels:
-            app: k8s-app
-        spec:
-          containers:
-          - name: k8s-app
-            image: 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app
-            imagePullPolicy: Always
-            ports:
-            - containerPort: 80
-    EOL
-
-    # Create Kubernetes service
-    cat <<EOL > /home/ubuntu/k8s-app-service.yaml
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: k8s-app-service
-    spec:
-      type: NodePort
-      selector:
+      labels:
         app: k8s-app
-      ports:
-      - protocol: TCP
-        port: 80
-        targetPort: 80
-        nodePort: 30000
-    EOL
+    spec:
+      containers:
+      - name: k8s-app
+        image: 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+EOL
 
-    # Apply Kubernetes configurations
-    sudo k3s kubectl apply -f /home/ubuntu/k8s-app-deployment.yaml
-    sudo k3s kubectl apply -f /home/ubuntu/k8s-app-service.yaml
-  EOF
+# Create Kubernetes service
+cat <<EOL > /home/ubuntu/k8s-app-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-app-service
+spec:
+  type: NodePort
+  selector:
+    app: k8s-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+    nodePort: 30000
+EOL
+
+# Apply Kubernetes configurations
+sudo k3s kubectl apply -f /home/ubuntu/k8s-app-deployment.yaml
+sudo k3s kubectl apply -f /home/ubuntu/k8s-app-service.yaml
+
+
 
   tags = {
     Name = "k8s-app-ec2"
