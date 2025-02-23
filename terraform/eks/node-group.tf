@@ -33,6 +33,7 @@ resource "aws_eks_node_group" "devsecops_eks_node_group" {
   node_group_name = "devsecops-eks-node-group"
   node_role_arn   = aws_iam_role.eks_worker_node_role.arn
   subnet_ids      = aws_subnet.eks_subnets[*].id
+  version         = "1.32"
 
   scaling_config {
     desired_size = 2
