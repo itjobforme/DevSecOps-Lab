@@ -65,7 +65,7 @@ resource "aws_instance" "k8s_app_ec2" {
   ami           = "ami-09e67e426f25ce0d7" # Ubuntu Server 20.04 LTS
   instance_type = "t2.micro"
   iam_instance_profile = aws_iam_instance_profile.ec2_ssm_profile.name
-  key_name = "devsecops-key-new" # Updated to use the new key pair
+  key_name = "devsecops-key-new"
 
   security_groups = ["k8s-app-sg"]
 
