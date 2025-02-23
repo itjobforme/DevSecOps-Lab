@@ -19,6 +19,8 @@ resource "aws_subnet" "eks_subnets" {
   vpc_id            = aws_vpc.devsecops_eks_vpc.id
   cidr_block        = cidrsubnet(aws_vpc.devsecops_eks_vpc.cidr_block, 4, count.index)
   availability_zone = element(data.aws_availability_zones.available.names, count.index)
+  map_public_ip_on_launch = true
+
 
   tags = {
     Name = "devsecops-eks-subnet-${count.index}"
