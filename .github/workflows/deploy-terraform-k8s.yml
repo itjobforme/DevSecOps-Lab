@@ -1,12 +1,12 @@
-name: Deploy EKS Infrastructure with Terraform
+name: Deploy K8s App to EC2 Kubernetes
 
 on:
   push:
     branches:
       - main
     paths:
+      - 'k8s-app/**'
       - 'terraform/k8s/**'
-     
 
 jobs:
   deploy:
@@ -17,7 +17,7 @@ jobs:
       contents: read
 
     steps:
-    - name: Checkout code
+    - name: Checkout Code
       uses: actions/checkout@v3
 
     - name: Configure AWS Credentials
@@ -26,19 +26,42 @@ jobs:
         role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
         aws-region: us-east-1
 
-    - name: Install Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.5.5
+    - name: Generate Kubeconfig for k3s
+      run: |
+        INSTANCE_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=k8s-app-ec2" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
+        mkdir -p ~/.kube
+        echo "
+        apiVersion: v1
+        clusters:
+        - cluster:
+            server: https://$INSTANCE_IP:6443
+            insecure-skip-tls-verify: true
+          name: k3s-cluster
+        contexts:
+        - context:
+            cluster: k3s-cluster
+            user: k3s-admin
+          name: k3s-context
+        current-context: k3s-context
+        kind: Config
+        preferences: {}
+        users:
+        - name: k3s-admin
+          user:
+            exec:
+              apiVersion: client.authentication.k8s.io/v1beta1
+              command: aws
+              args:
+                - "eks"
+                - "get-token"
+                - "--cluster-name"
+                - "k3s-cluster"
+                - "--region"
+                - "us-east-1"
+        " > ~/.kube/config
 
-    - name: Initialize Terraform
+    - name: Initialize and Apply Terraform
       run: |
         cd terraform/k8s
         terraform init
-
-    - name: Apply Terraform Configuration
-      run: |
-        cd terraform/k8s
         terraform apply -auto-approve
-
-    
