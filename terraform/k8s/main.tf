@@ -105,7 +105,7 @@ resource "aws_instance" "k8s_app_ec2" {
     aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 580034872400.dkr.ecr.us-east-1.amazonaws.com
     sleep 5
 
-    # Install k3s (Lightweight Kubernetes)
+    # Install k3s
     curl -sfL https://get.k3s.io | sh -
     sleep 30
 
