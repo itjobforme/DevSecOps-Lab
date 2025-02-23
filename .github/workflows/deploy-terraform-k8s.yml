@@ -33,12 +33,12 @@ jobs:
 
     - name: Initialize Terraform
       run: |
-        cd terraform/eks
+        cd terraform/k8s
         terraform init
 
     - name: Apply Terraform Configuration
       run: |
-        cd terraform/eks
+        cd terraform/k8s
         terraform apply -auto-approve
 
     
