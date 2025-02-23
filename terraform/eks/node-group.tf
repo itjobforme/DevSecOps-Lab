@@ -27,7 +27,7 @@ resource "aws_iam_role_policy_attachment" "ec2_container_registry_policy" {
   role       = aws_iam_role.eks_worker_node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
-# EKS Managed Node Group
+
 resource "aws_eks_node_group" "devsecops_eks_node_group" {
   cluster_name    = aws_eks_cluster.devsecops_eks.name
   node_group_name = "devsecops-eks-node-group"
