@@ -38,9 +38,9 @@ jobs:
 
     - name: Deploy to Kubernetes
       run: |
-        kubectl apply -f k8s-app/kubernetes/deployment.yaml
-        kubectl apply -f k8s-app/kubernetes/service.yaml
-        kubectl apply -f k8s-app/kubernetes/ingress.yaml
+        kubectl apply -f k8s-app/kubernetes/deployment.yml
+        kubectl apply -f k8s-app/kubernetes/service.yml
+        kubectl apply -f k8s-app/kubernetes/ingress.yml
 
     - name: Verify Kubernetes Deployment
       run: |
