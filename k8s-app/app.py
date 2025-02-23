@@ -25,7 +25,7 @@ def home():
     <h2>📅 Next Steps</h2>
     <p>🔜 Implement advanced security policies like PodSecurityPolicies and NetworkPolicies to enhance the security posture of the Kubernetes environment.</p>
     <p>🔜 Demonstrate canary deployments and rolling updates with Kubernetes to show how updates can be managed with minimal downtime.</p>
-    <p>🔜 Explore using Helm charts for packaging and deploying Kubernetes applications in a more modular and reusable manner.</p>
+    <p>🔜 Explore using Helm charts for packaging and deploying Kubernetes applications in a modular and reusable manner.</p>
 
     <hr>
     <p><i>Built with Flask, deployed on Kubernetes, and secured with best practices for multi-cloud DevSecOps.</i></p>
