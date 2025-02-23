@@ -31,6 +31,13 @@ jobs:
       with:
         terraform_wrapper: false
 
+    - name: Add SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.DEVSECOPS_SSH_KEY }}" > ~/.ssh/devsecops-key-new.pem
+        chmod 600 ~/.ssh/devsecops-key-new.pem
+        ssh-keyscan -H k8s-app-ec2 >> ~/.ssh/known_hosts
+
     - name: Generate Kubeconfig on EC2
       run: |
         INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=k8s-app-ec2" --query "Reservations[*].Instances[*].InstanceId" --output text)
