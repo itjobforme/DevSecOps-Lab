@@ -149,7 +149,6 @@ resource "aws_acm_certificate_validation" "devsecops_cert_validation" {
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
 
-# Load Balancer, Target Group, and DNS
 resource "aws_lb" "devsecops_eks_lb" {
   name               = "devsecops-eks-lb"
   internal           = false
