@@ -8,7 +8,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 def home():
     return """
     <h1> DevSecOps Lab: Kubernetes Deployment </h1>
-    <p>Welcome to the Kubernetes version of my DevSecOps lab! This web app is running in a Kubernetes cluster on Azure Kubernetes Service (AKS).</p>
+    <p>Welcome to the Kubernetes version of my DevSecOps lab! This web app is running in a Kubernetes cluster on Elastic Kubernetes Service (EKS).</p>
 
     <h2> What Makes This Deployment Different? </h2>
     <p>This application is running as a set of pods managed by Kubernetes. Key differences compared to the Docker on EC2 deployment include:</p>
