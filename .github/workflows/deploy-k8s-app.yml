@@ -33,31 +33,40 @@ jobs:
         docker tag devsecops-k8s-app:latest 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app:latest
         docker push 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app:latest
 
-    - name: Update Kubernetes Deployment via SSM
+    - name: Get EC2 Instance IDs by Tag
+      id: get_instances
       run: |
-        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=k8s-app-ec2" --query "Reservations[*].Instances[*].InstanceId" --output text)
+        INSTANCE_IDS=$(aws ec2 describe-instances \
+          --filters "Name=tag:Name,Values=k8s-app-ec2" "Name=instance-state-name,Values=running" \
+          --query "Reservations[*].Instances[*].InstanceId" \
+          --output text)
+        echo "instance_ids=$INSTANCE_IDS" >> $GITHUB_ENV
+
+    - name: Update Kubernetes Deployment via SSM
+      if: success() && env.instance_ids != ''
+      run: |
         aws ssm send-command \
-          --instance-ids "$INSTANCE_ID" \
+          --instance-ids ${instance_ids// /,} \
           --document-name "AWS-RunShellScript" \
           --parameters 'commands=["sudo k3s kubectl rollout restart deployment k8s-app"]' \
           --comment "Restart Kubernetes deployment to use latest Docker image" \
           --region us-east-1
 
     - name: Verify Kubernetes Deployment
+      if: success() && env.instance_ids != ''
       run: |
-        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=k8s-app-ec2" --query "Reservations[*].Instances[*].InstanceId" --output text)
         aws ssm send-command \
-          --instance-ids "$INSTANCE_ID" \
+          --instance-ids ${instance_ids// /,} \
           --document-name "AWS-RunShellScript" \
           --parameters 'commands=["sudo k3s kubectl get pods -A","sudo k3s kubectl get services -A"]' \
           --comment "Check the status of Kubernetes pods and services" \
           --region us-east-1
 
     - name: Describe Kubernetes Resources
+      if: success() && env.instance_ids != ''
       run: |
-        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=k8s-app-ec2" --query "Reservations[*].Instances[*].InstanceId" --output text)
         aws ssm send-command \
-          --instance-ids "$INSTANCE_ID" \
+          --instance-ids ${instance_ids// /,} \
           --document-name "AWS-RunShellScript" \
           --parameters 'commands=["sudo k3s kubectl describe deployment k8s-app","sudo k3s kubectl describe service k8s-app-service"]' \
           --comment "Describe Kubernetes deployment and service" \
