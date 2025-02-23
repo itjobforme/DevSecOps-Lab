@@ -1,12 +1,12 @@
-name: Deploy Terraform to EC2 Kubernetes
+name: Deploy EKS Infrastructure with Terraform
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'k8s-app/**'
       - 'terraform/k8s/**'
+     
 
 jobs:
   deploy:
@@ -17,7 +17,7 @@ jobs:
       contents: read
 
     steps:
-    - name: Checkout Code
+    - name: Checkout code
       uses: actions/checkout@v3
 
     - name: Configure AWS Credentials
@@ -29,56 +29,16 @@ jobs:
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v2
       with:
-        terraform_wrapper: false
+        terraform_version: 1.5.5
 
-    - name: Set Up SSH Key and Known Hosts
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/devsecops-key-new.pem
-        chmod 600 ~/.ssh/devsecops-key-new.pem
-        
-    - name: Set Up SSH Key and Known Hosts
-      run: |
-        mkdir -p ~/.ssh
-        
-        # Add the private key from GitHub Secrets
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/devsecops-key-new.pem
-        chmod 600 ~/.ssh/devsecops-key-new.pem
-        
-        # Get the public IP of the EC2 instance by tag name
-        INSTANCE_IP=$(aws ec2 describe-instances \
-          --filters "Name=tag:Name,Values=k8s-app-ec2" \
-          --query "Reservations[*].Instances[*].PublicIpAddress" \
-          --output text)
-        
-        # Check if INSTANCE_IP is not empty
-        if [ -z "$INSTANCE_IP" ]; then
-          echo "Error: Could not retrieve the public IP of the EC2 instance."
-          exit 1
-        fi
-        
-        # Add the instance to known hosts
-        ssh-keyscan -H "$INSTANCE_IP" >> ~/.ssh/known_hosts
-
-
-    - name: Generate Kubeconfig on EC2
-      run: |
-        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=k8s-app-ec2" --query "Reservations[*].Instances[*].InstanceId" --output text)
-        aws ssm send-command \
-          --instance-ids "$INSTANCE_ID" \
-          --document-name "AWS-RunShellScript" \
-          --parameters 'commands=["mkdir -p ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown $(id -u):$(id -g) ~/.kube/config"]' \
-          --comment "Setup kubeconfig on EC2 instance" \
-          --region us-east-1
-
-    - name: Retrieve Kubeconfig from EC2
-      run: |
-        INSTANCE_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=k8s-app-ec2" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
-        scp -o StrictHostKeyChecking=no -i ~/.ssh/devsecops-key-new.pem ubuntu@$INSTANCE_IP:~/.kube/config ~/.kube/config
-
-    - name: Initialize and Apply Terraform
+    - name: Initialize Terraform
       run: |
         cd terraform/k8s
-        export KUBECONFIG=~/.kube/config
         terraform init
+
+    - name: Apply Terraform Configuration
+      run: |
+        cd terraform/k8s
         terraform apply -auto-approve
+
+    
