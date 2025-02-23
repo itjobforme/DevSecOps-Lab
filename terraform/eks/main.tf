@@ -51,7 +51,6 @@ resource "aws_route_table_association" "eks_route_table_association" {
   route_table_id = aws_route_table.devsecops_eks_route_table.id
 }
 
-# Security Groups
 resource "aws_security_group" "eks_node_sg" {
   name   = "devsecops-eks-node-sg"
   vpc_id = aws_vpc.devsecops_eks_vpc.id
