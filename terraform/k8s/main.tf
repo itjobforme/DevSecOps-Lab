@@ -71,6 +71,9 @@ resource "aws_instance" "k8s_app_ec2" {
 
   user_data = <<-EOF
     #!/bin/bash
+    exec > /var/log/user-data.log 2>&1
+    set -x
+
     # Ensure no other apt processes are running
     while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
        echo "Waiting for other apt processes to finish..."
@@ -151,6 +154,8 @@ resource "aws_instance" "k8s_app_ec2" {
     sudo k3s kubectl apply -f /home/ubuntu/k8s-app-deployment.yml
     sudo k3s kubectl apply -f /home/ubuntu/k8s-app-service.yml
     sleep 5
+
+    echo "User data script completed."
   EOF
 
   tags = {
