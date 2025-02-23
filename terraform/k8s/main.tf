@@ -10,10 +10,36 @@ terraform {
   }
 }
 
+resource "aws_iam_role" "ec2_ssm_role" {
+  name = "DevSecOpsEC2SSMRole-k8s-app"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_policy_attachment" "ssm_policy_attachment" {
+  name       = "ssm-policy-attachment-k8s-app"
+  roles      = [aws_iam_role.ec2_ssm_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "ec2_ssm_profile" {
+  name = "DevSecOpsEC2SSMProfile-k8s-app"
+  role = aws_iam_role.ec2_ssm_role.name
+}
+
 resource "aws_instance" "k8s_app_ec2" {
   ami           = "ami-09e67e426f25ce0d7" # Ubuntu Server 20.04 LTS
   instance_type = "t2.micro"
-  iam_instance_profile = "SSMManagedInstanceProfile" # Use SSM for management
+  iam_instance_profile = aws_iam_instance_profile.ec2_ssm_profile.name
 
   security_groups = ["k8s-app-sg"]
 
