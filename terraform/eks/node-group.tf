@@ -28,6 +28,7 @@ resource "aws_iam_role_policy_attachment" "ec2_container_registry_policy" {
   role       = aws_iam_role.eks_worker_node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
+# Allow ALB to access EKS nodes on NodePort range
 resource "aws_security_group_rule" "allow_alb_to_nodeport" {
   type                     = "ingress"
   from_port                = 30000
@@ -38,6 +39,7 @@ resource "aws_security_group_rule" "allow_alb_to_nodeport" {
   description              = "Allow ALB to access EKS nodes on NodePort range"
 }
 
+# Allow EKS nodes to send traffic to ALB
 resource "aws_security_group_rule" "allow_node_to_alb" {
   type                     = "egress"
   from_port                = 80
@@ -47,6 +49,7 @@ resource "aws_security_group_rule" "allow_node_to_alb" {
   destination_security_group_id = aws_security_group.alb_sg.id
   description              = "Allow EKS nodes to send traffic to ALB"
 }
+
 
 
 # EKS Managed Node Group
