@@ -40,7 +40,7 @@ resource "aws_instance" "k8s_app_ec2" {
   ami           = "ami-09e67e426f25ce0d7" # Ubuntu Server 20.04 LTS
   instance_type = "t2.micro"
   iam_instance_profile = aws_iam_instance_profile.ec2_ssm_profile.name
-  key_name = "devsecops-key-new" # Updated to use the new key pair
+  key_name = "devsecops-key-new"
 
   security_groups = ["k8s-app-sg"]
 
@@ -53,23 +53,33 @@ resource "aws_instance" "k8s_app_ec2" {
     done
 
     sudo apt-get update -y
-    sudo apt-get install -y docker.io unzip
+    sleep 5
+
+    # Retry package installation with sleep intervals
+    RETRIES=5
+    until sudo apt-get install -y docker.io unzip awscli; do
+      if [ $RETRIES -le 0 ]; then
+        echo "Failed to install packages after multiple attempts, exiting."
+        exit 1
+      fi
+      echo "Retrying package installation..."
+      sleep 10
+      RETRIES=$((RETRIES-1))
+    done
 
     # Start Docker and add the ubuntu user to the docker group
     sudo systemctl enable docker
     sudo systemctl start docker
     sudo usermod -aG docker ubuntu
-
-    # Install AWS CLI
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    unzip awscliv2.zip
-    sudo ./aws/install
+    sleep 5
 
     # Login to ECR
     aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 580034872400.dkr.ecr.us-east-1.amazonaws.com
+    sleep 5
 
     # Install k3s (Lightweight Kubernetes)
     curl -sfL https://get.k3s.io | sh -
+    sleep 10
 
     # Create Kubernetes deployment
     cat <<EOL > /home/ubuntu/k8s-app-deployment.yml
@@ -115,6 +125,7 @@ resource "aws_instance" "k8s_app_ec2" {
     # Apply Kubernetes configurations
     sudo k3s kubectl apply -f /home/ubuntu/k8s-app-deployment.yml
     sudo k3s kubectl apply -f /home/ubuntu/k8s-app-service.yml
+    sleep 5
   EOF
 
   tags = {
