@@ -4,7 +4,13 @@ metadata:
   name: devsecops-k8s-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
 spec:
+  tls:
+  - hosts:
+    - k8s.securingthecloud.org
+    secretName: tls-secret
   rules:
   - host: k8s.securingthecloud.org
     http:
