@@ -143,6 +143,8 @@ resource "aws_instance" "k8s_app_ec2" {
           labels:
             app: k8s-app
         spec:
+          imagePullSecrets:
+            - name: ecr-secret
           containers:
           - name: k8s-app
             image: 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app
