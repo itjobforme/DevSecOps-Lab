@@ -31,42 +31,24 @@ jobs:
       with:
         terraform_wrapper: false
 
-    - name: Generate Kubeconfig for k3s
+    - name: Generate Kubeconfig on EC2
+      run: |
+        INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=k8s-app-ec2" --query "Reservations[*].Instances[*].InstanceId" --output text)
+        aws ssm send-command \
+          --instance-ids "$INSTANCE_ID" \
+          --document-name "AWS-RunShellScript" \
+          --parameters 'commands=["mkdir -p ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown $(id -u):$(id -g) ~/.kube/config"]' \
+          --comment "Setup kubeconfig on EC2 instance" \
+          --region us-east-1
+
+    - name: Retrieve Kubeconfig from EC2
       run: |
         INSTANCE_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=k8s-app-ec2" --query "Reservations[*].Instances[*].PublicIpAddress" --output text)
-        mkdir -p ~/.kube
-        echo "
-        apiVersion: v1
-        clusters:
-        - cluster:
-            server: https://$INSTANCE_IP:6443
-            insecure-skip-tls-verify: true
-          name: k3s-cluster
-        contexts:
-        - context:
-            cluster: k3s-cluster
-            user: k3s-admin
-          name: k3s-context
-        current-context: k3s-context
-        kind: Config
-        preferences: {}
-        users:
-        - name: k3s-admin
-          user:
-            exec:
-              apiVersion: client.authentication.k8s.io/v1beta1
-              command: aws
-              args:
-                - "eks"
-                - "get-token"
-                - "--cluster-name"
-                - "k3s-cluster"
-                - "--region"
-                - "us-east-1"
-        " > ~/.kube/config
+        scp -o StrictHostKeyChecking=no -i ~/.ssh/devsecops-key-new.pem ubuntu@$INSTANCE_IP:~/.kube/config ~/.kube/config
 
     - name: Initialize and Apply Terraform
       run: |
         cd terraform/k8s
+        export KUBECONFIG=~/.kube/config
         terraform init
         terraform apply -auto-approve
