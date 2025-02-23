@@ -67,6 +67,7 @@ resource "aws_eks_node_group" "devsecops_eks_node_group" {
 
   remote_access {
     ec2_ssh_key = var.ssh_key_name
+    source_security_groups = [aws_security_group.alb_sg.id]
   }
 
   tags = {
