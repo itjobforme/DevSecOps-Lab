@@ -2,10 +2,13 @@ provider "aws" {
   region = "us-east-1"
 }
 
+# Data Source for Availability Zones
+data "aws_availability_zones" "available" {}
+
 # VPC Configuration
 resource "aws_vpc" "devsecops_eks_vpc" {
-  cidr_block = "10.0.0.0/16"
-  enable_dns_support = true
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
     Name = "devsecops-eks-vpc"
@@ -76,23 +79,25 @@ resource "aws_security_group" "eks_node_sg" {
   }
 }
 
-resource "aws_security_group" "eks_lb_sg" {
-  name   = "devsecops-eks-lb-sg"
-  vpc_id = aws_vpc.devsecops_eks_vpc.id
+# IAM Roles for EKS Cluster
+resource "aws_iam_role" "eks_cluster_role" {
+  name = "devsecops-eks-cluster-role"
 
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "eks.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
+  role       = aws_iam_role.eks_cluster_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
 # EKS Cluster
@@ -101,9 +106,11 @@ resource "aws_eks_cluster" "devsecops_eks" {
   role_arn = aws_iam_role.eks_cluster_role.arn
 
   vpc_config {
-    subnet_ids = aws_subnet.eks_subnets[*].id
+    subnet_ids       = aws_subnet.eks_subnets[*].id
     security_group_ids = [aws_security_group.eks_node_sg.id]
   }
+
+  depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
 }
 
 # ACM Certificate
@@ -132,13 +139,23 @@ resource "aws_acm_certificate_validation" "devsecops_cert_validation" {
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
 
-# Load Balancer and DNS
+# Load Balancer, Target Group, and DNS
 resource "aws_lb" "devsecops_eks_lb" {
   name               = "devsecops-eks-lb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.eks_lb_sg.id]
+  security_groups    = [aws_security_group.eks_node_sg.id]
   subnets            = aws_subnet.eks_subnets[*].id
+
+  depends_on = [aws_acm_certificate_validation.devsecops_cert_validation]
+}
+
+resource "aws_lb_target_group" "eks_target_group" {
+  name       = "devsecops-eks-tg"
+  port       = 443
+  protocol   = "HTTPS"
+  vpc_id     = aws_vpc.devsecops_eks_vpc.id
+  target_type = "ip"
 }
 
 resource "aws_lb_listener" "https_listener" {
@@ -149,7 +166,7 @@ resource "aws_lb_listener" "https_listener" {
   certificate_arn    = aws_acm_certificate.devsecops_cert.arn
 
   default_action {
-    type = "forward"
+    type             = "forward"
     target_group_arn = aws_lb_target_group.eks_target_group.arn
   }
 }
@@ -164,4 +181,3 @@ resource "aws_route53_record" "dns_record" {
     evaluate_target_health = true
   }
 }
-
