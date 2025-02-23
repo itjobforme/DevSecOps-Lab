@@ -40,3 +40,17 @@ jobs:
       run: |
         cd terraform/azure
         terraform apply -auto-approve
+
+    - name: Configure kubectl for AKS
+      run: |
+        az aks get-credentials --resource-group devsecops-lab-rg --name devsecops-aks --overwrite-existing
+
+    - name: Deploy Kubernetes Service and Ingress
+      run: |
+        kubectl apply -f k8s-app/kubernetes/service.yaml
+        kubectl apply -f k8s-app/kubernetes/ingress.yaml
+
+    - name: Verify Kubernetes Resources
+      run: |
+        kubectl get services -A
+        kubectl get ingress -A
