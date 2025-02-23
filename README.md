@@ -1,5 +1,5 @@
 # DevSecOps Training - Hands-On Lab  
-🔗 **Live Blog**: https://blog.securingthecloud.org  
+🔗 **Live Blog**: https://docker.securingthecloud.org  
 
 This hands-on lab is designed to build practical **DevSecOps** skills by implementing **CI/CD security automation, infrastructure as code, container security, and cloud security monitoring**.  
 
@@ -76,5 +76,5 @@ As part of this project, we have built and deployed a **real-world application**
 
 ## Tracking My Progress  
 ✅ **Document everything** (committing findings to GitHub)  
-**Write about my journey** on [Securing The Cloud](https://blog.securingthecloud.org)
+**Write about my journey** on [Securing The Cloud](https://docker.securingthecloud.org)
 **Engage with security communities** (OWASP, DevSecOps Discords, Reddit)  
