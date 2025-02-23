@@ -36,9 +36,9 @@ jobs:
         cd terraform/k8s
         terraform init
 
-    - name: Apply Terraform Configuration
+    - name: Apply Destroy Configuration
       run: |
         cd terraform/k8s
-        terraform apply -auto-approve
+        terraform destroy -auto-approve
 
     
