@@ -127,6 +127,51 @@ resource "aws_instance" "k8s_app_ec2" {
     sudo k3s kubectl get nodes
     sudo k3s kubectl get pods -A
 
+    # Create Kubernetes deployment
+    cat <<EOL > /home/ubuntu/k8s-app-deployment.yml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: k8s-app
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: k8s-app
+      template:
+        metadata:
+          labels:
+            app: k8s-app
+        spec:
+          containers:
+          - name: k8s-app
+            image: 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app
+            imagePullPolicy: Always
+            ports:
+            - containerPort: 80
+    EOL
+
+    # Create Kubernetes service
+    cat <<EOL > /home/ubuntu/k8s-app-service.yml
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: k8s-app-service
+    spec:
+      type: NodePort
+      selector:
+        app: k8s-app
+      ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 80
+        nodePort: 30000
+    EOL
+
+    # Verify YAML files were created
+    echo "Listing contents of /home/ubuntu directory:"
+    ls -la /home/ubuntu/
+
     # Apply Kubernetes configurations
     sudo k3s kubectl apply -f /home/ubuntu/k8s-app-deployment.yml --validate=false
     sudo k3s kubectl apply -f /home/ubuntu/k8s-app-service.yml --validate=false
