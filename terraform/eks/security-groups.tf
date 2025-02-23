@@ -82,13 +82,13 @@ resource "aws_security_group_rule" "allow_alb_to_nodeport" {
   description              = "Allow ALB to access EKS nodes on NodePort range"
 }
 
-# Allow EKS nodes to send traffic to ALB
+# Allow EKS nodes to send traffic to ALB by updating the ALB security group instead of using 'destination_security_group_id'
 resource "aws_security_group_rule" "allow_node_to_alb" {
-  type                     = "egress"
+  type                     = "ingress"
   from_port                = 80
   to_port                  = 80
   protocol                 = "tcp"
-  security_group_id        = aws_security_group.eks_node_sg.id
-  destination_security_group_id = aws_security_group.alb_sg.id
+  security_group_id        = aws_security_group.alb_sg.id
+  source_security_group_id = aws_security_group.eks_node_sg.id
   description              = "Allow EKS nodes to send traffic to ALB"
 }
