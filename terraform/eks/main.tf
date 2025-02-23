@@ -71,6 +71,19 @@ resource "aws_security_group" "eks_node_sg" {
     cidr_blocks = ["173.216.28.115/32"]
   }
 
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "devsecops-eks-node-sg"
+  }
+}
+
+
   # Allow inbound traffic from ALB on NodePort range
   ingress {
     from_port                = 30000
