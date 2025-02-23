@@ -1,7 +1,7 @@
 provider "aws" {
   region = "us-east-1"
 }
-#
+
 terraform {
   backend "s3" {
     bucket = "devsecops-blog-0a1a509edae085e7"
