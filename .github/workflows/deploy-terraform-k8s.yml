@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'terraform/k8s/**'
-      - 'k8s-app/**'
+     
 
 jobs:
   deploy:
