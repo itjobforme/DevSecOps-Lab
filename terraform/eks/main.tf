@@ -99,7 +99,6 @@ resource "aws_eks_cluster" "devsecops_eks" {
 }
 
 
-# ACM Certificate
 resource "aws_acm_certificate" "devsecops_cert" {
   domain_name       = "k8s.securingthecloud.org"
   validation_method = "DNS"
