@@ -79,6 +79,19 @@ resource "aws_security_group" "eks_node_sg" {
   }
 }
 
+# ECR Repository
+resource "aws_ecr_repository" "devsecops_k8s_app" {
+  name = "devsecops-k8s-app"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "devsecops-k8s-app"
+  }
+}
+
 # IAM Roles for EKS Cluster
 resource "aws_iam_role" "eks_cluster_role" {
   name = "devsecops-eks-cluster-role"
