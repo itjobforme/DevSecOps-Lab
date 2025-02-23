@@ -1,4 +1,3 @@
-# IAM Role for Worker Nodes
 resource "aws_iam_role" "eks_worker_node_role" {
   name = "devsecops-eks-worker-node-role"
 
