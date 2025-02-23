@@ -45,18 +45,27 @@ resource "aws_instance" "k8s_app_ec2" {
 
   user_data = <<-EOF
     #!/bin/bash
+    # Ensure no other apt processes are running
+    while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+       echo "Waiting for other apt processes to finish..."
+       sleep 5
+    done
+
     sudo apt-get update -y
-    sudo apt-get install -y docker.io
+    sudo apt-get install -y docker.io unzip
+
+    # Start Docker and add the ubuntu user to the docker group
+    sudo systemctl enable docker
     sudo systemctl start docker
     sudo usermod -aG docker ubuntu
 
-    # Install aws cli
+    # Install AWS CLI
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
     unzip awscliv2.zip
     sudo ./aws/install
 
     # Login to ECR
-    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 580034872400.dkr.ecr.us-east-1.amazonaws.com
+    aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 580034872400.dkr.ecr.us-east-1.amazonaws.com
 
     # Install k3s (Lightweight Kubernetes)
     curl -sfL https://get.k3s.io | sh -
@@ -85,6 +94,7 @@ resource "aws_instance" "k8s_app_ec2" {
             - containerPort: 80
     EOL
 
+    # Create Kubernetes service
     cat <<EOL > /home/ubuntu/k8s-app-service.yaml
     apiVersion: v1
     kind: Service
