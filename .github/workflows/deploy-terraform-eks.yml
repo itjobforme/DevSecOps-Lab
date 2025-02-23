@@ -1,0 +1,41 @@
+name: Deploy EKS Infrastructure with Terraform
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/eks/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+        aws-region: us-east-1
+
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.5
+
+    - name: Initialize Terraform
+      run: |
+        cd terraform/eks
+        terraform init
+
+    - name: Apply Terraform Configuration
+      run: |
+        cd terraform/eks
+        terraform apply -auto-approve
