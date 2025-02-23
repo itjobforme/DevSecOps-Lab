@@ -2,15 +2,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: devsecops-k8s-service
-  namespace: default
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-resource-group: "devsecops-lab-rg"
 spec:
+  type: LoadBalancer
   selector:
     app: devsecops-k8s
   ports:
     - protocol: TCP
       port: 443
       targetPort: 80
-  type: LoadBalancer
-  loadBalancerIP: "172.174.38.73"
