@@ -71,11 +71,24 @@ resource "aws_security_group" "eks_node_sg" {
     cidr_blocks = ["173.216.28.115/32"]
   }
 
+  # Allow inbound traffic from ALB on NodePort range
+  ingress {
+    from_port                = 30000
+    to_port                  = 32767
+    protocol                 = "tcp"
+    source_security_group_id = aws_security_group.alb_sg.id
+    description              = "Allow ALB to access EKS nodes on NodePort range"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "devsecops-eks-node-sg"
   }
 }
 
