@@ -88,15 +88,16 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
 resource "aws_eks_cluster" "devsecops_eks" {
   name     = "devsecops-eks-cluster"
   role_arn = aws_iam_role.eks_cluster_role.arn
+  version  = "1.32" 
 
   vpc_config {
-    subnet_ids         = aws_subnet.eks_subnets[*].id
+    subnet_ids       = aws_subnet.eks_subnets[*].id
     security_group_ids = [aws_security_group.eks_node_sg.id]
-    version:           = "1.32"
   }
 
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
 }
+
 
 # ACM Certificate
 resource "aws_acm_certificate" "devsecops_cert" {
