@@ -89,7 +89,6 @@ resource "aws_ecr_repository" "devsecops_k8s_app" {
   }
 }
 
-# IAM Roles for EKS Cluster
 resource "aws_iam_role" "eks_cluster_role" {
   name = "devsecops-eks-cluster-role"
 
