@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'terraform/eks/**'
-      - 'k8s-app/kubernetes/**'
+      - 'k8s-app/**'
 
 jobs:
   deploy:
@@ -36,9 +36,9 @@ jobs:
         cd terraform/eks
         terraform init
 
-    - name: Apply destroy Configuration
+    - name: Apply Terraform Configuration
       run: |
         cd terraform/eks
-        terraform destroy -auto-approve
+        terraform apply -auto-approve
 
     
