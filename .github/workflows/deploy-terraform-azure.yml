@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'terraform/azure/**'
+      - 'k8s-app/kubernetes/**'
 
 jobs:
   deploy:
@@ -53,6 +54,13 @@ jobs:
     - name: Configure kubectl for AKS
       run: |
         az aks get-credentials --resource-group devsecops-lab-rg --name devsecops-aks --overwrite-existing
+
+    - name: Create Kubernetes TLS Secret
+      run: |
+        kubectl create secret tls tls-secret \
+        --cert="${{ secrets.TLS_CERTIFICATE }}" \
+        --key="${{ secrets.TLS_PRIVATE_KEY }}" \
+        --namespace default || echo "Secret already exists"
 
     - name: Deploy Kubernetes Service and Ingress
       run: |
