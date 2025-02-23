@@ -8,17 +8,17 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
 def home():
     return """
     <h1> DevSecOps Lab: Kubernetes Deployment </h1>
-    <p>Welcome to the Kubernetes version of my DevSecOps lab! This web app is running in a Kubernetes cluster on Elastic Kubernetes Service (EKS).</p>
+    <p>Welcome to the Kubernetes version of my DevSecOps lab! This web app is running in a Kubernetes cluster on an EC2 instance with k3s.</p>
 
     <h2> What Makes This Deployment Different? </h2>
-    <p>This application is running as a set of pods managed by Kubernetes. Key differences compared to the Docker on EC2 deployment include:</p>
+    <p>This application is running as a set of pods managed by Kubernetes. While both Docker and Kubernetes involve containers, there are some key differences:</p>
     <ul>
-        <li>⚙️ <b>Container Orchestration:</b> Kubernetes handles deploying, scaling, and managing containers automatically.</li>
-        <li>📈 <b>Auto-Scaling:</b> Kubernetes can automatically scale the app up or down based on demand.</li>
-        <li>🔄 <b>Self-Healing:</b> If a container crashes, Kubernetes will automatically restart it.</li>
-        <li>🔀 <b>Load Balancing:</b> Kubernetes uses a service object to distribute traffic across multiple pods.</li>
-        <li>🔑 <b>Secrets Management:</b> Using Kubernetes Secrets and ConfigMaps instead of AWS SSM Parameter Store.</li>
-        <li>🌐 <b>Ingress and DNS:</b> Configured with an Ingress resource to route external traffic to the app via <code>k8s.securingthecloud.org</code>.</li>
+        <li>⚙️ <b>Container Orchestration:</b> Docker on EC2 is straightforward—containers are started directly on the host. Kubernetes, on the other hand, abstracts this with pods, deployments, and services, which adds flexibility but also complexity.</li>
+        <li>📈 <b>Auto-Scaling:</b> With Docker, you scale manually (e.g., running multiple containers). Kubernetes can automatically scale up or down based on load, but setting this up requires configuring Horizontal Pod Autoscalers and monitoring.</li>
+        <li>🔄 <b>Self-Healing:</b> While Docker requires manual intervention to restart failed containers, Kubernetes offers built-in self-healing by automatically restarting pods.</li>
+        <li>🔀 <b>Load Balancing:</b> Kubernetes manages traffic distribution through services, whereas Docker might require external load balancers or manual configuration.</li>
+        <li>🔑 <b>Secrets Management:</b> Docker often uses environment variables or external secrets management tools. Kubernetes uses Secrets and ConfigMaps, which provide more robust and integrated solutions but require additional configuration.</li>
+        <li>🌐 <b>Ingress and DNS:</b> With Kubernetes, setting up Ingress and domain-based routing (e.g., <code>k8s.securingthecloud.org</code>) is powerful but involves configuring Ingress controllers, which is more involved than setting up a simple reverse proxy in Docker.</li>
     </ul>
 
     <h2>📅 Next Steps</h2>
