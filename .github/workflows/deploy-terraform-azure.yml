@@ -32,6 +32,8 @@ jobs:
         echo "ARM_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_ENV
         echo "ARM_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
         echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
+        echo "TF_VAR_tls_certificate=${{ secrets.TLS_CERTIFICATE }}" >> $GITHUB_ENV
+        echo "TF_VAR_tls_private_key=${{ secrets.TLS_PRIVATE_KEY }}" >> $GITHUB_ENV
 
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v2
