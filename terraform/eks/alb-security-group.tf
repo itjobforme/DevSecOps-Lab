@@ -19,6 +19,15 @@ resource "aws_security_group" "alb_sg" {
     description = "Allow HTTPS traffic from anywhere"
   }
 
+  # Allow NodePort Range for EKS Nodes
+  ingress {
+    from_port                = 30000
+    to_port                  = 32767
+    protocol                 = "tcp"
+    security_groups          = [aws_security_group.eks_node_sg.id]
+    description              = "Allow traffic from EKS nodes on NodePort range"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
