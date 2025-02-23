@@ -2,10 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: devsecops-k8s-app
-  labels:
-    app: devsecops-k8s-app
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: devsecops-k8s-app
@@ -15,4 +13,7 @@ spec:
         app: devsecops-k8s-app
     spec:
       containers:
-      - name: devsecops
+      - name: devsecops-k8s-app
+        image: 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app:latest
+        ports:
+        - containerPort: 80
