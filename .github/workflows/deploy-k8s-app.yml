@@ -31,6 +31,7 @@ jobs:
 
     - name: Build and Push Docker Image
       run: |
+        set -e
         docker build -t devsecops-k8s-app:latest k8s-app
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 580034872400.dkr.ecr.us-east-1.amazonaws.com
         docker tag devsecops-k8s-app:latest 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app:latest
@@ -38,6 +39,7 @@ jobs:
 
     - name: Deploy to Kubernetes
       run: |
+        set -e
         kubectl apply -f k8s-app/kubernetes/deployment.yml
         kubectl apply -f k8s-app/kubernetes/service.yml
         kubectl apply -f k8s-app/kubernetes/ingress.yml
@@ -47,3 +49,9 @@ jobs:
         kubectl get pods -A
         kubectl get services -A
         kubectl get ingress -A
+
+    - name: Describe Kubernetes Resources
+      run: |
+        kubectl describe deployment devsecops-k8s-app
+        kubectl describe service devsecops-k8s-service
+        kubectl describe ingress devsecops-k8s-ingress
