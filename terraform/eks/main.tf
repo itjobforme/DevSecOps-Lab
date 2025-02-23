@@ -53,58 +53,6 @@ resource "aws_route_table_association" "eks_route_table_association" {
   route_table_id = aws_route_table.devsecops_eks_route_table.id
 }
 
-resource "aws_security_group" "eks_node_sg" {
-  name   = "devsecops-eks-node-sg"
-  vpc_id = aws_vpc.devsecops_eks_vpc.id
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["173.216.28.115/32"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "devsecops-eks-node-sg"
-  }
-}
-
-
-  # Allow inbound traffic from ALB on NodePort range
-  ingress {
-    from_port                = 30000
-    to_port                  = 32767
-    protocol                 = "tcp"
-    source_security_group_id = aws_security_group.alb_sg.id
-    description              = "Allow ALB to access EKS nodes on NodePort range"
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "devsecops-eks-node-sg"
-  }
-}
-
 resource "aws_ecr_repository" "devsecops_k8s_app" {
   name = "devsecops-k8s-app"
 
