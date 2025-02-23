@@ -1,4 +1,4 @@
-name: Deploy K8s App to EC2 Kubernetes
+name: Deploy Terraform to EC2 Kubernetes
 
 on:
   push:
