@@ -1,16 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: devsecops-k8s-service
+  name: k8s-app-service
   labels:
-    app: devsecops-k8s-app
-  annotations:
-    alb.ingress.kubernetes.io/target-type: ip
+    app: k8s-app
 spec:
   selector:
-    app: devsecops-k8s-app
+    app: k8s-app
   ports:
     - protocol: TCP
       port: 80
       targetPort: 80
-  type: ClusterIP 
+      nodePort: 30000
+  type: NodePort
