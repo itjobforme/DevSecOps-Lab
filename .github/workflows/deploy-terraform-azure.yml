@@ -59,7 +59,8 @@ jobs:
         kubectl apply -f k8s-app/kubernetes/service.yaml
         kubectl apply -f k8s-app/kubernetes/ingress.yaml
 
-    - name: Verify Kubernetes Resources
+    - name: Check Kubernetes Service, Ingress, and Secret
       run: |
         kubectl get services -A
         kubectl get ingress -A
+        kubectl get secrets -A
