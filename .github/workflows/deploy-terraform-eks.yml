@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'terraform/eks/**'
+      - 'k8s-app/kubernetes/**'
 
 jobs:
   deploy:
@@ -39,3 +40,18 @@ jobs:
       run: |
         cd terraform/eks
         terraform apply -auto-approve
+
+    - name: Configure kubectl for EKS
+      run: |
+        aws eks update-kubeconfig --name devsecops-eks-cluster --region us-east-1
+
+    - name: Deploy Kubernetes Service and Ingress
+      run: |
+        kubectl apply -f k8s-app/kubernetes/service.yml
+        kubectl apply -f k8s-app/kubernetes/ingress.yaml
+
+    - name: Check Kubernetes Service, Ingress, and Secret
+      run: |
+        kubectl get services -A
+        kubectl get ingress -A
+        kubectl get secrets -A
