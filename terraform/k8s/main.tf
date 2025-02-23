@@ -120,7 +120,7 @@ EOL
 # Apply Kubernetes configurations
 sudo k3s kubectl apply -f /home/ubuntu/k8s-app-deployment.yaml
 sudo k3s kubectl apply -f /home/ubuntu/k8s-app-service.yaml
-
+EOF
 
 
   tags = {
