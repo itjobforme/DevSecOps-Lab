@@ -166,11 +166,13 @@ resource "aws_lb" "devsecops_eks_lb" {
   name               = "devsecops-eks-lb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.eks_node_sg.id]
+  security_groups    = [aws_security_group.alb_sg.id] # Updated to use ALB SG
   subnets            = aws_subnet.eks_subnets[*].id
 
   depends_on = [aws_acm_certificate_validation.devsecops_cert_validation]
 }
+
+
 
 resource "aws_lb_target_group" "eks_target_group" {
   name       = "devsecops-eks-tg"
