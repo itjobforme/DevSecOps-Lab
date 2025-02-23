@@ -1,4 +1,4 @@
-name: Deploy K8s App to AKS
+name: Deploy K8s App to EKS
 
 on:
   push:
@@ -19,22 +19,22 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Azure Login with OIDC
-      uses: azure/login@v1
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+        aws-region: us-east-1
 
-    - name: Set up kubectl
+    - name: Set up kubectl for EKS
       run: |
-        az aks get-credentials --resource-group devsecops-lab-rg --name devsecops-aks
+        aws eks update-kubeconfig --name devsecops-eks-cluster --region us-east-1
 
     - name: Build and Push Docker Image
       run: |
-        docker build -t devsecopsregistry72023.azurecr.io/devsecops-k8s-app:latest k8s-app
-        echo "${{ secrets.ACR_PASSWORD }}" | docker login devsecopsregistry72023.azurecr.io -u "${{ secrets.ACR_USERNAME }}" --password-stdin
-        docker push devsecopsregistry72023.azurecr.io/devsecops-k8s-app:latest
+        docker build -t devsecops-k8s-app:latest k8s-app
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 580034872400.dkr.ecr.us-east-1.amazonaws.com
+        docker tag devsecops-k8s-app:latest 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app:latest
+        docker push 580034872400.dkr.ecr.us-east-1.amazonaws.com/devsecops-k8s-app:latest
 
     - name: Deploy to Kubernetes
       run: |
